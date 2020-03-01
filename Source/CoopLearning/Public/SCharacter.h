@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class ASWeapon;
+class USHealthComponent;
 
 UCLASS()
 class COOPLEARNING_API ASCharacter : public ACharacter
@@ -45,6 +46,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* SpringArmComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USHealthComponent* HealthComp;
+
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
@@ -62,6 +66,12 @@ protected:
 	float ZoomInterpSpeed;
 
 	float DefaultFOV;
+
+	UFUNCTION()
+	void OnHeathChanged(USHealthComponent* SourceHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	bool bDied;
 
 public:	
 	// Called every frame

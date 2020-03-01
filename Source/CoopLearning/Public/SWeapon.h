@@ -9,6 +9,7 @@
 class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
+class UCameraShake;
 
 UCLASS()
 class COOPLEARNING_API ASWeapon : public AActor
