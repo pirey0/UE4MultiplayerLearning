@@ -7,7 +7,6 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 
-
 static int32 DebugWeaponDrawing = 0;
 
 FAutoConsoleVariableRef CVARDegubWeaponDrawing (TEXT("COOP.DebugWeapons"), DebugWeaponDrawing, TEXT("Draw Debug Lines for Weapons"), ECVF_Cheat);
