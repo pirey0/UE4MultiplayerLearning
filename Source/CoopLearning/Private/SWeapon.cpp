@@ -25,6 +25,11 @@ ASWeapon::ASWeapon()
 
 	BaseDamage = 20.0f;
 	RateOfFire = 300;
+
+	SetReplicates(true);
+	
+	NetUpdateFrequency = 66;
+	MinNetUpdateFrequency = 33;
 }
 
 void ASWeapon::StartFire()
@@ -41,6 +46,13 @@ void ASWeapon::StopFire()
 
 void ASWeapon::Fire()
 {
+	LastFireTimeStamp = GetWorld()->TimeSeconds;
+
+	if (Role < ROLE_Authority)
+	{
+		ServerFire();
+		return;
+	}
 
 	AActor* MyOwner = GetOwner();
 
@@ -60,6 +72,8 @@ void ASWeapon::Fire()
 		QueryParams.bTraceComplex = true;
 		QueryParams.bReturnPhysicalMaterial = true;
 
+		FMulticastShotData MulticastData;
+
 		FVector TracerEndPoint = TraceEnd;
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
@@ -76,23 +90,46 @@ void ASWeapon::Fire()
 
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 
-			PlayImpactEffects(Hit, SurfaceType);
-
 			TracerEndPoint = Hit.ImpactPoint;
+
+			MulticastData.HitTarget = true;
+			MulticastData.ImpactPoint = Hit.ImpactPoint;
+			MulticastData.ImpactNormal = Hit.ImpactNormal;
+			MulticastData.SurfaceType = SurfaceType;
 		}
+
+		MulticastData.TraceEndPoint = TracerEndPoint;
 		
 		if (DebugWeaponDrawing > 0) 
 		{
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 		}
 
-		PlayFireEffects(TracerEndPoint);
+		MultiCastFire(MulticastData);
 
-		LastFireTimeStamp = GetWorld()->TimeSeconds;
 	}
 
 }
 
+void ASWeapon::MultiCastFire_Implementation(FMulticastShotData MulticastData)
+{
+	PlayFireEffects(MulticastData.TraceEndPoint);
+
+	if (MulticastData.HitTarget) 
+	{
+		PlayImpactEffects(MulticastData.ImpactPoint, MulticastData.ImpactNormal, MulticastData.SurfaceType);
+	}
+}
+
+void ASWeapon::ServerFire_Implementation()
+{
+	Fire();
+}
+
+bool ASWeapon::ServerFire_Validate() 
+{
+	return true;
+}
 
 
 void ASWeapon::BeginPlay()
@@ -126,11 +163,15 @@ void ASWeapon::PlayFireEffects(FVector TracerEndPoint)
 	if (MyOwner) {
 
 		APlayerController* PC = Cast<APlayerController>(MyOwner->GetController());
-		PC->ClientPlayCameraShake(FireCamShake);
+
+		if (PC) 
+		{
+			PC->ClientPlayCameraShake(FireCamShake);
+		}
 	}
 }
 
-void ASWeapon::PlayImpactEffects(FHitResult Hit, EPhysicalSurface SurfaceType)
+void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhysicalSurface SurfaceType)
 {
 	UParticleSystem* SelectedEffect = nullptr;
 
@@ -148,7 +189,7 @@ void ASWeapon::PlayImpactEffects(FHitResult Hit, EPhysicalSurface SurfaceType)
 
 	if (SelectedEffect)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, ImpactPoint, ImpactNormal.Rotation());
 	}
 
 }

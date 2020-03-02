@@ -11,6 +11,30 @@ class UDamageType;
 class UParticleSystem;
 class UCameraShake;
 
+USTRUCT()
+struct FMulticastShotData 
+{
+	GENERATED_BODY();
+
+public:
+
+	UPROPERTY()
+	bool HitTarget;
+
+	UPROPERTY()
+	FVector_NetQuantize TraceEndPoint;
+
+	UPROPERTY()
+	FVector_NetQuantize ImpactPoint;
+
+	UPROPERTY()
+	FVector_NetQuantizeNormal ImpactNormal;
+
+	UPROPERTY()
+	TEnumAsByte<EPhysicalSurface> SurfaceType;
+
+};
+
 UCLASS()
 class COOPLEARNING_API ASWeapon : public AActor
 {
@@ -30,7 +54,7 @@ protected:
 
 	void PlayFireEffects(FVector TracerEndPoint);
 
-	void PlayImpactEffects(FHitResult HitResult, EPhysicalSurface SurfaceType);
+	void PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhysicalSurface SurfaceType);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	float BaseDamage;
@@ -60,6 +84,12 @@ protected:
 	TSubclassOf<UCameraShake> FireCamShake;
 
 	virtual void Fire();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerFire();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastFire(FMulticastShotData MulticastData);
 
 	FTimerHandle TimerHandle_TimeBetweenShots;
 

@@ -41,6 +41,9 @@ protected:
 
 	bool bExploded;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastExplode();
+
 	UFUNCTION()
 	void OnHeathChanged(USHealthComponent* SourceHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
