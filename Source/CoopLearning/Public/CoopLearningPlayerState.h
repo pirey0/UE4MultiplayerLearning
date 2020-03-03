@@ -14,4 +14,26 @@ class COOPLEARNING_API ACoopLearningPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 	
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	int Kills;
+
+
+	UPROPERTY(BlueprintReadOnly)
+	int Deaths;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void AddKill();
+
+	UFUNCTION(BlueprintCallable)
+	void AddDeath();
+
+	int GetKills();
+
+	int GetDeaths();
+
+	UFUNCTION(BlueprintCallable)
+	FString GetPlayerInfo();
+
 };
