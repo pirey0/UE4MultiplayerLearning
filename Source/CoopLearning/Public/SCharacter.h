@@ -78,6 +78,9 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bDied;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnDeathEffects();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

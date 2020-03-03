@@ -9,6 +9,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SHealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "CoopLearning.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -26,7 +27,7 @@ ASCharacter::ASCharacter()
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_EngineTraceChannel1, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
 	ZoomedFOV = 65;
 	ZoomInterpSpeed = 40;
@@ -115,7 +116,8 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		//Deaths
 		bDied = true;
 		GetMovementComponent()->StopMovementImmediately();
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		MulticastOnDeathEffects();
 
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
 
@@ -123,6 +125,14 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		SetLifeSpan(10.0f);
 	}
 
+}
+
+void ASCharacter::MulticastOnDeathEffects_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnDeathEffects"));
+
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 }
 
 // Called every frame
