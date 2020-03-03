@@ -11,6 +11,8 @@ class USpringArmComponent;
 class ASWeapon;
 class USHealthComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
+
 UCLASS()
 class COOPLEARNING_API ASCharacter : public ACharacter
 {
@@ -84,4 +86,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	FVector GetPawnViewLocation() const override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnDeathSignature OnDeath;
 };

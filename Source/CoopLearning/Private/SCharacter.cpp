@@ -117,8 +117,9 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		DetachFromControllerPendingDestroy();
+		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
 
+		DetachFromControllerPendingDestroy();
 		SetLifeSpan(10.0f);
 	}
 
