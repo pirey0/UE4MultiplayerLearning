@@ -110,7 +110,7 @@ void ASCharacter::StopFire()
 
 void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Health, float HealthDelta, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (Health <= 0.0f)
+	if (Health <= 0.0f && !bDied)
 	{
 		//Deaths
 		bDied = true;
