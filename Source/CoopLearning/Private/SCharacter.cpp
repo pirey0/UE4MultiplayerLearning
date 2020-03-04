@@ -47,13 +47,8 @@ void ASCharacter::BeginPlay()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		CurrentWeapon = GetWorld()->SpawnActor<ASWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-
-		if (CurrentWeapon)
-		{
-			CurrentWeapon->SetOwner(this);
-			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-		}
+		ASWeapon* NewWeapon = GetWorld()->SpawnActor<ASWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		EquipWeapon(NewWeapon);
 	}
 }
 
@@ -93,7 +88,7 @@ void ASCharacter::EndZoom()
 	bWantsToZoom = false;
 }
 
-void ASCharacter::StartFire()
+void ASCharacter::BeginFire()
 {
 	if (CurrentWeapon)
 	{
@@ -109,14 +104,68 @@ void ASCharacter::StopFire()
 	}
 }
 
+void ASCharacter::BeginPickup()
+{
+}
+
+void ASCharacter::BeginDrop()
+{
+	if (CurrentWeapon)
+	{
+		ServerTryDrop();
+		StopFire();
+	}
+}
+
+void ASCharacter::ServerTryDrop_Implementation()
+{
+	UnequipWeapon();
+}
+
+bool ASCharacter::ServerTryDrop_Validate()
+{
+	return true;
+}
+
+void ASCharacter::EquipWeapon(ASWeapon * NewWeapon)
+{
+	if (NewWeapon && Role >= ROLE_Authority)
+	{
+		if (CurrentWeapon)
+		{
+			UnequipWeapon();
+		}
+
+		CurrentWeapon = NewWeapon;
+		NewWeapon->GetEquippedBy(this);
+		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+		
+	}
+}
+
+ASWeapon* ASCharacter::UnequipWeapon()
+{
+	if (CurrentWeapon && Role >= ROLE_Authority) 
+	{
+		StopFire();
+
+		ASWeapon* Weapon = CurrentWeapon;
+		Weapon->Unequip();
+		CurrentWeapon = nullptr;
+		return Weapon;
+	}
+
+	return nullptr;
+}
+
 void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Health, float HealthDelta, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (Health <= 0.0f && !bDied)
+	if (Health <= 0.0f && !bDied && Role >= ROLE_Authority)
 	{
 		//Deaths
 		bDied = true;
 		GetMovementComponent()->StopMovementImmediately();
-		StopFire();
+		BeginDrop();
 
 		MulticastOnDeathEffects();
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
@@ -167,8 +216,12 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &ASCharacter::BeginZoom);
 	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &ASCharacter::EndZoom);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASCharacter::StartFire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASCharacter::BeginFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASCharacter::StopFire);
+
+	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &ASCharacter::BeginPickup);
+
+	PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &ASCharacter::BeginDrop);
 
 }
 

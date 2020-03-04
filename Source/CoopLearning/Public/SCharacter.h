@@ -40,9 +40,21 @@ protected:
 
 	void EndZoom();
 
-	void StartFire();
+	void BeginFire();
 
 	void StopFire();
+
+	void BeginPickup();
+
+	void BeginDrop();
+
+	void EquipWeapon(ASWeapon* weapon);
+
+	ASWeapon* UnequipWeapon();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerTryDrop();
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;

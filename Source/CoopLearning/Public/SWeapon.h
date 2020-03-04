@@ -106,4 +106,8 @@ public:
 
 	void StopFire();
 
+	void GetEquippedBy(AActor* NewOwner);
+
+	void Unequip();
+
 };
