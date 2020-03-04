@@ -36,4 +36,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FString GetPlayerInfo();
 
+	UFUNCTION(BlueprintCallable)
+	void SetName(FString S);
 };
