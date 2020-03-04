@@ -121,7 +121,12 @@ void ASCharacter::BeginPickup()
 
 	TArray<AActor*> ActorsInArea;
 	GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
-	UE_LOG(LogTemp, Log, TEXT("PickupSearch: Actor Count is %d"), ActorsInArea.Num());
+
+	for (int i = 0; i < ActorsInArea.Num(); i++)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Overlap with %s"), *ActorsInArea[i]->GetName());
+	}
+
 	ASWeapon* ClosestWeapon = GetClosestWeapon(GetActorLocation(), ActorsInArea);
 
 	if (ClosestWeapon)
