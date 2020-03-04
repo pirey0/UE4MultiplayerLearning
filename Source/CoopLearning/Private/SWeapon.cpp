@@ -59,7 +59,7 @@ void ASWeapon::Unequip()
 	FDetachmentTransformRules DetchmentRules = FDetachmentTransformRules::KeepWorldTransform;
 
 	DetachFromActor(DetchmentRules);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComp->SetSimulatePhysics(true);
 }
 

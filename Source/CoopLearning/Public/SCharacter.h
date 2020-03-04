@@ -10,6 +10,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class ASWeapon;
 class USHealthComponent;
+class USphereComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
 
@@ -55,6 +56,8 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerTryDrop();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerTryPickup();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* CameraComp;
@@ -64,6 +67,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USHealthComponent* HealthComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USphereComponent* DetectionComp;
 
 	UPROPERTY(Replicated)
 	ASWeapon* CurrentWeapon;
@@ -93,6 +99,8 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastOnDeathEffects();
 
+	ASWeapon* GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -104,4 +112,5 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDeathSignature OnDeath;
+
 };
