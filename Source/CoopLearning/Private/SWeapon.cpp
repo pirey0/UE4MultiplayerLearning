@@ -9,6 +9,8 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "CoopLearning.h"
 #include "TimerManager.h"
+#include "Engine/DataTable.h"
+#include "UObject/ConstructorHelpers.h"
 
 static int32 DebugWeaponDrawing = 0;
 
@@ -23,15 +25,20 @@ ASWeapon::ASWeapon()
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
 
-	BaseDamage = 20.0f;
-	RateOfFire = 300;
-
 	SetReplicates(true);
 	MeshComp->SetIsReplicated(true);
 
 	NetUpdateFrequency = 66;
 	MinNetUpdateFrequency = 33;
-	ThrowForce = 1000;
+
+	WeaponsDataName = FName(TEXT("Rifle"));
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> WeaponsDataTableObject(TEXT("DataTable'/Game/Core/DT_Weapons.DT_Weapons'"));
+	if (WeaponsDataTableObject.Succeeded())
+	{
+		WeaponsData = WeaponsDataTableObject.Object->FindRow<FWeaponData>(WeaponsDataName, "Rifle",true);
+	}
+
 }
 
 void ASWeapon::StartFire()
@@ -68,7 +75,7 @@ void ASWeapon::Unequip()
 		MeshComp->SetSimulatePhysics(true);
 		MeshComp->SetPhysicsLinearVelocity(OwnerVelocity);
 		FVector Direction = GetActorRightVector() + FVector::UpVector;
-		MeshComp->AddImpulse(Direction * ThrowForce);
+		MeshComp->AddImpulse(Direction * WeaponsData->ThrowForce);
 	}
 }
 
@@ -92,7 +99,7 @@ void ASWeapon::Fire()
 
 		FVector ShotDirection = EyeRotation.Vector();
 
-		FVector TraceEnd = EyeLocation + (ShotDirection * 100000);
+		FVector TraceEnd = EyeLocation + (ShotDirection * WeaponsData->HitMaxDistance);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
@@ -109,7 +116,7 @@ void ASWeapon::Fire()
 			AActor* HitActor = Hit.GetActor();
 
 			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-			float ActualDamage = BaseDamage;
+			float ActualDamage = WeaponsData->BaseDamage;
 
 			if (SurfaceType == SURFACE_FLESHVULNERABLE) 
 			{
@@ -164,7 +171,7 @@ void ASWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	TimeBetweenShots = 60 / RateOfFire;
+	TimeBetweenShots = 60 / WeaponsData->RateOfFire;
 }
 
 void ASWeapon::PlayFireEffects(FVector TracerEndPoint)

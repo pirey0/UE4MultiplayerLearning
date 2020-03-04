@@ -11,7 +11,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPossessSignature, class ACoopLea
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnPossessSignature, class ACoopLearningPlayerController*, PC);
 
 
-
 UCLASS()
 class COOPLEARNING_API ACoopLearningPlayerController : public APlayerController
 {

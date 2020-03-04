@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
 #include "SWeapon.generated.h"
 
 class USkeletalMeshComponent;
@@ -11,10 +12,37 @@ class UDamageType;
 class UParticleSystem;
 class UCameraShake;
 
+
+
+USTRUCT(BlueprintType)
+struct FWeaponData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseDamage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UDamageType> DamageType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RateOfFire;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ThrowForce;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HitMaxDistance;
+
+};
+
+
 USTRUCT()
 struct FMulticastShotData 
 {
-	GENERATED_BODY();
+	GENERATED_BODY()
 
 public:
 
@@ -49,15 +77,17 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	FWeaponData* WeaponsData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName WeaponsDataName;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComp;
 
 	void PlayFireEffects(FVector TracerEndPoint);
 
 	void PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhysicalSurface SurfaceType);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	float BaseDamage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<UDamageType> DamageType;
@@ -95,14 +125,8 @@ protected:
 
 	float LastFireTimeStamp;
 
-	//ShotsPerMin
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	float RateOfFire;
-
 	float TimeBetweenShots;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	float ThrowForce;
 
 public:
 	void StartFire();
