@@ -101,6 +101,9 @@ protected:
 
 	float TimeBetweenShots;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float ThrowForce;
+
 public:
 	void StartFire();
 

@@ -31,6 +31,7 @@ ASWeapon::ASWeapon()
 
 	NetUpdateFrequency = 66;
 	MinNetUpdateFrequency = 33;
+	ThrowForce = 1000;
 }
 
 void ASWeapon::StartFire()
@@ -54,13 +55,21 @@ void ASWeapon::GetEquippedBy(AActor * NewOwner)
 
 void ASWeapon::Unequip()
 {
-	SetOwner(nullptr);
+	if (GetOwner()) 
+	{
+		FVector OwnerVelocity = GetOwner()->GetVelocity();
+		SetOwner(nullptr);
 
-	FDetachmentTransformRules DetchmentRules = FDetachmentTransformRules::KeepWorldTransform;
+		FDetachmentTransformRules DetchmentRules = FDetachmentTransformRules::KeepWorldTransform;
+		DetachFromActor(DetchmentRules);
 
-	DetachFromActor(DetchmentRules);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	MeshComp->SetSimulatePhysics(true);
+		MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		MeshComp->SetSimulatePhysics(true);
+		MeshComp->SetPhysicsLinearVelocity(OwnerVelocity);
+		FVector Direction = GetActorRightVector() + FVector::UpVector;
+		MeshComp->AddImpulse(Direction * ThrowForce);
+	}
 }
 
 void ASWeapon::Fire()
