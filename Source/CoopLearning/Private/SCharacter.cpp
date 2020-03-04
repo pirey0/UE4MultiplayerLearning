@@ -122,20 +122,12 @@ void ASCharacter::BeginPickup()
 	TArray<AActor*> ActorsInArea;
 	GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
 
-	for (int i = 0; i < ActorsInArea.Num(); i++)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Overlap with %s"), *ActorsInArea[i]->GetName());
-	}
-
 	ASWeapon* ClosestWeapon = GetClosestWeapon(GetActorLocation(), ActorsInArea);
 
 	if (ClosestWeapon)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Closest weapon is %s"), *ClosestWeapon->GetName());
-
 		if (Role >= ROLE_Authority) 
 		{
-			UE_LOG(LogTemp, Log, TEXT("Direct Equip"));
 			EquipWeapon(ClosestWeapon);
 		}
 		else 
