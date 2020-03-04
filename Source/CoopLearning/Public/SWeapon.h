@@ -101,9 +101,16 @@ protected:
 
 	float TimeBetweenShots;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float ThrowForce;
+
 public:
 	void StartFire();
 
 	void StopFire();
+
+	void GetEquippedBy(AActor* NewOwner);
+
+	void Unequip();
 
 };

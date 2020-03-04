@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SHealthComponent.h"
+#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "CoopLearning.h"
 
@@ -25,6 +26,9 @@ ASCharacter::ASCharacter()
 
 	HealthComp = CreateDefaultSubobject<USHealthComponent>(TEXT("HealthComp"));
 
+	DetectionComp = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionComp"));
+	DetectionComp->SetupAttachment(RootComponent);
+
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
@@ -40,6 +44,7 @@ void ASCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	DefaultFOV = CameraComp->FieldOfView;
+
 	HealthComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHeathChanged);
 
 	if (Role == ROLE_Authority)
@@ -47,13 +52,8 @@ void ASCharacter::BeginPlay()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		CurrentWeapon = GetWorld()->SpawnActor<ASWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-
-		if (CurrentWeapon)
-		{
-			CurrentWeapon->SetOwner(this);
-			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
-		}
+		ASWeapon* NewWeapon = GetWorld()->SpawnActor<ASWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		EquipWeapon(NewWeapon);
 	}
 }
 
@@ -93,7 +93,7 @@ void ASCharacter::EndZoom()
 	bWantsToZoom = false;
 }
 
-void ASCharacter::StartFire()
+void ASCharacter::BeginFire()
 {
 	if (CurrentWeapon)
 	{
@@ -109,14 +109,122 @@ void ASCharacter::StopFire()
 	}
 }
 
+void ASCharacter::BeginPickup()
+{
+	//Check on the client first if there is an overlapping weapon
+	//will be checked again on server if this is the client
+
+	if (CurrentWeapon) 
+	{
+		return;
+	}
+
+	TArray<AActor*> ActorsInArea;
+	GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
+
+	for (int i = 0; i < ActorsInArea.Num(); i++)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Overlap with %s"), *ActorsInArea[i]->GetName());
+	}
+
+	ASWeapon* ClosestWeapon = GetClosestWeapon(GetActorLocation(), ActorsInArea);
+
+	if (ClosestWeapon)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Closest weapon is %s"), *ClosestWeapon->GetName());
+
+		if (Role >= ROLE_Authority) 
+		{
+			UE_LOG(LogTemp, Log, TEXT("Direct Equip"));
+			EquipWeapon(ClosestWeapon);
+		}
+		else 
+		{
+			ServerTryPickup();
+		}
+	}
+}
+
+void ASCharacter::ServerTryPickup_Implementation()
+{
+	if (CurrentWeapon)
+	{
+		return;
+	}
+
+	TArray<AActor*> ActorsInArea;
+	GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
+
+	ASWeapon* ClosestWeapon = GetClosestWeapon(GetActorLocation(), ActorsInArea);
+
+	if (ClosestWeapon)
+	{
+		EquipWeapon(ClosestWeapon);
+	}
+}
+
+bool ASCharacter::ServerTryPickup_Validate()
+{
+	return true;
+}
+
+void ASCharacter::BeginDrop()
+{
+	if (CurrentWeapon)
+	{
+		ServerTryDrop();
+		StopFire();
+	}
+}
+
+void ASCharacter::ServerTryDrop_Implementation()
+{
+	UnequipWeapon();
+}
+
+bool ASCharacter::ServerTryDrop_Validate()
+{
+	return true;
+}
+
+void ASCharacter::EquipWeapon(ASWeapon * NewWeapon)
+{
+	if (NewWeapon && Role >= ROLE_Authority)
+	{
+		if (CurrentWeapon)
+		{
+			UnequipWeapon();
+		}
+
+		CurrentWeapon = NewWeapon;
+		NewWeapon->GetEquippedBy(this);
+		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);	
+	}
+}
+
+ASWeapon* ASCharacter::UnequipWeapon()
+{
+	if (CurrentWeapon && Role >= ROLE_Authority) 
+	{
+		StopFire();
+
+		ASWeapon* Weapon = CurrentWeapon;
+		Weapon->Unequip();
+		CurrentWeapon = nullptr;
+		return Weapon;
+	}
+
+	return nullptr;
+}
+
 void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Health, float HealthDelta, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (Health <= 0.0f && !bDied)
+	if (Health <= 0.0f && !bDied && Role >= ROLE_Authority)
 	{
 		//Deaths
 		bDied = true;
 		GetMovementComponent()->StopMovementImmediately();
-		StopFire();
+		BeginDrop();
 
 		MulticastOnDeathEffects();
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
@@ -133,6 +241,33 @@ void ASCharacter::MulticastOnDeathEffects_Implementation()
 
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+}
+
+ASWeapon* ASCharacter::GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors)
+{
+	if (actors.Num() <= 0)
+	{
+		return nullptr;
+	}
+
+	ASWeapon* closestActor = nullptr;
+	float currentClosestDistance = TNumericLimits<float>::Max();
+
+	for (int i = 0; i < actors.Num(); i++)
+	{
+		ASWeapon* WeaponCast = Cast<ASWeapon>(actors[i]);
+		if (WeaponCast) 
+		{
+			float distance = FVector::DistSquared(sourceLocation, actors[i]->GetActorLocation());
+			if (distance < currentClosestDistance)
+			{
+				currentClosestDistance = distance;
+				closestActor = WeaponCast;
+			}
+		}
+	}
+
+	return closestActor;
 }
 
 // Called every frame
@@ -167,8 +302,12 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &ASCharacter::BeginZoom);
 	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &ASCharacter::EndZoom);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASCharacter::StartFire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASCharacter::BeginFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASCharacter::StopFire);
+
+	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &ASCharacter::BeginPickup);
+
+	PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &ASCharacter::BeginDrop);
 
 }
 

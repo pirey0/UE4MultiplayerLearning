@@ -29,3 +29,8 @@ FString ACoopLearningPlayerState::GetPlayerInfo()
 	return GetPlayerName() + " (K: " + FString::FromInt(Kills) + "  | D: " + FString::FromInt(Deaths) + ")";
 
 }
+
+void ACoopLearningPlayerState::SetName(FString S)
+{
+	SetPlayerName(S);
+}
