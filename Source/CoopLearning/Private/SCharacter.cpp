@@ -116,9 +116,9 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		//Deaths
 		bDied = true;
 		GetMovementComponent()->StopMovementImmediately();
+		StopFire();
 
 		MulticastOnDeathEffects();
-
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
 
 		DetachFromControllerPendingDestroy();
