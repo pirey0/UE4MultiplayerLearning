@@ -31,6 +31,8 @@ protected:
 
 	void MoveRight(float Value);
 
+	float GetAimSlowdownMultiplyer();
+
 	void BeginCrouch();
 
 	void EndCrouch();
@@ -77,7 +79,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<ASWeapon> StarterWeaponClass;
 
-	UPROPERTY(VisibleDefaultsONly, Category = "Player")
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName WeaponAttachSocketName;
 
 	bool bWantsToZoom;
@@ -89,6 +91,15 @@ protected:
 	float ZoomInterpSpeed;
 
 	float DefaultFOV;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
+	float AimProgress;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerBeginZoom();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerEndZoom();
 
 	UFUNCTION()
 	void OnHeathChanged(USHealthComponent* SourceHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);

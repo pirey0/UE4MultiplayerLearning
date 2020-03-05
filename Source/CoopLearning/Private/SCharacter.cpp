@@ -60,12 +60,18 @@ void ASCharacter::BeginPlay()
 
 void ASCharacter::MoveForward(float Value)
 {
-	AddMovementInput(GetActorForwardVector() * Value);
+
+	AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer());
 }
 
 void ASCharacter::MoveRight(float Value)
 {
-	AddMovementInput(GetActorRightVector() * Value);
+	AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer());
+}
+
+float ASCharacter::GetAimSlowdownMultiplyer()
+{
+	return  1 - (AimProgress * 0.5);
 }
 
 void ASCharacter::BeginCrouch()
@@ -87,11 +93,41 @@ void ASCharacter::BeginJump()
 void ASCharacter::BeginZoom()
 {
 	bWantsToZoom = true;
+
+	if (Role < ROLE_Authority)
+	{
+		ServerBeginZoom();
+	}
 }
 
 void ASCharacter::EndZoom()
 {
 	bWantsToZoom = false;
+
+	if (Role < ROLE_Authority)
+	{
+		ServerEndZoom();
+	}
+}
+
+void ASCharacter::ServerBeginZoom_Implementation()
+{
+	bWantsToZoom = true;
+}
+
+bool ASCharacter::ServerBeginZoom_Validate()
+{
+	return true;
+}
+
+void ASCharacter::ServerEndZoom_Implementation()
+{
+	bWantsToZoom = false;
+}
+
+bool ASCharacter::ServerEndZoom_Validate()
+{
+	return true;
 }
 
 void ASCharacter::BeginFire()
@@ -268,11 +304,18 @@ void ASCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
+	if (Role >= ROLE_AutonomousProxy) 
+	{
+		float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
 
-	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
 
-	CameraComp->SetFieldOfView(NewFOV);
+		float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
+
+		CameraComp->SetFieldOfView(NewFOV);
+
+		AimProgress = 1 - ((NewFOV - ZoomedFOV) / (DefaultFOV - ZoomedFOV));
+
+	}
 }
 
 // Called to bind functionality to input
@@ -320,4 +363,5 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
 	DOREPLIFETIME(ASCharacter, bDied);
+	DOREPLIFETIME(ASCharacter, AimProgress);
 }
