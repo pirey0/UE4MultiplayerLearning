@@ -11,6 +11,7 @@
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "CoopLearning.h"
+#include "Components/SkeletalMeshComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -217,7 +218,7 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		bDied = true;
 		GetMovementComponent()->StopMovementImmediately();
 		BeginDrop();
-
+		GetMesh()->SetSimulatePhysics(true);
 		MulticastOnDeathEffects();
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
 
@@ -229,10 +230,10 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 
 void ASCharacter::MulticastOnDeathEffects_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnDeathEffects"));
-
+	bDied = true;
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	GetMesh()->SetSimulatePhysics(true);
 }
 
 ASWeapon* ASCharacter::GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors)
