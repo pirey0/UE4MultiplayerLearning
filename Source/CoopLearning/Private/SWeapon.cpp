@@ -93,13 +93,13 @@ void ASWeapon::Fire()
 
 	if (MyOwner)
 	{
-		FVector EyeLocation;
+		FVector TraceStart;
 		FRotator EyeRotation;
-		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+		MyOwner->GetActorEyesViewPoint(TraceStart, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
 
-		FVector TraceEnd = EyeLocation + (ShotDirection * WeaponsData->HitMaxDistance);
+		FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData->HitMaxDistance);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
@@ -111,14 +111,26 @@ void ASWeapon::Fire()
 
 		FVector TracerEndPoint = TraceEnd;
 		FHitResult Hit;
-		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
+
+		//Get where the crosshair is looking
+		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
+		{
+			TraceEnd = Hit.ImpactPoint;
+		}
+
+		TraceStart = MeshComp->GetSocketLocation(MuzzleSocketName);
+
+		TraceStart = TraceStart + (TraceStart - TraceEnd).GetSafeNormal() * 50;
+
+		//Get from the Weapon Muzzle to the new TraceEnd
+		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
 			AActor* HitActor = Hit.GetActor();
 
 			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 			float ActualDamage = WeaponsData->BaseDamage;
 
-			if (SurfaceType == SURFACE_FLESHVULNERABLE) 
+			if (SurfaceType == SURFACE_FLESHVULNERABLE)
 			{
 				ActualDamage *= 2.5f;
 			}
@@ -132,12 +144,12 @@ void ASWeapon::Fire()
 			MulticastData.ImpactNormal = Hit.ImpactNormal;
 			MulticastData.SurfaceType = SurfaceType;
 		}
-
+		
 		MulticastData.TraceEndPoint = TracerEndPoint;
 		
 		if (DebugWeaponDrawing > 0) 
 		{
-			DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+			DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 		}
 
 		MultiCastFire(MulticastData);
@@ -226,5 +238,4 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, ImpactPoint, ImpactNormal.Rotation());
 	}
-
 }
