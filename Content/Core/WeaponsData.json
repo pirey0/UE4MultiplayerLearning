@@ -1,0 +1,10 @@
+[
+	{
+		"Name": "Rifle",
+		"BaseDamage": 20,
+		"DamageType": "None",
+		"RateOfFire": 300,
+		"ThrowForce": 3000,
+		"HitMaxDistance": 100000
+	}
+]

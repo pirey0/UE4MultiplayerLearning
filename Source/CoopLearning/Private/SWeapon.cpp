@@ -135,7 +135,7 @@ void ASWeapon::Fire()
 				ActualDamage *= 2.5f;
 			}
 
-			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData->DamageType);
 
 			TracerEndPoint = Hit.ImpactPoint;
 
@@ -225,6 +225,9 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 	switch (SurfaceType)
 	{
 	case SURFACE_FLESHDEFAULT:
+		SelectedEffect = FleshVulnerableImpactEffect;
+		break;
+
 	case SURFACE_FLESHVULNERABLE:
 		SelectedEffect = FleshImpactEffect;
 		break;

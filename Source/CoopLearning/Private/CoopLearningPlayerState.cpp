@@ -2,6 +2,7 @@
 
 
 #include "CoopLearningPlayerState.h"
+#include "Net/UnrealNetwork.h"
 
 void ACoopLearningPlayerState::AddKill()
 {
@@ -33,4 +34,13 @@ FString ACoopLearningPlayerState::GetPlayerInfo()
 void ACoopLearningPlayerState::SetName(FString S)
 {
 	SetPlayerName(S);
+}
+
+
+void ACoopLearningPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACoopLearningPlayerState, Kills);
+	DOREPLIFETIME(ACoopLearningPlayerState, Deaths);
 }

@@ -15,11 +15,11 @@ class COOPLEARNING_API ACoopLearningPlayerState : public APlayerState
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	int Kills;
 
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	int Deaths;
 
 public:
