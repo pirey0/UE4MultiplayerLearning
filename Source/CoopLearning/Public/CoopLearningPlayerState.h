@@ -33,6 +33,8 @@ public:
 
 	int GetDeaths();
 
+	void Reset();
+
 	UFUNCTION(BlueprintCallable)
 	FString GetPlayerInfo();
 

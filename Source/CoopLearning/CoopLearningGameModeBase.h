@@ -14,4 +14,10 @@ class COOPLEARNING_API ACoopLearningGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+
+protected:
+
+	UFUNCTION(Exec, Category = "Cheats")
+	void ResetAllKDA();
+
 };

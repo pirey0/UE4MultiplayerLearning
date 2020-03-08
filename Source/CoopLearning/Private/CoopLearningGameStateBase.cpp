@@ -19,3 +19,4 @@ FString ACoopLearningGameStateBase::GetAllPlayersInfo()
 
 	return Content;
 }
+

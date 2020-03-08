@@ -14,7 +14,7 @@
 
 static int32 DebugWeaponDrawing = 0;
 
-FAutoConsoleVariableRef CVARDegubWeaponDrawing (TEXT("COOP.DebugWeapons"), DebugWeaponDrawing, TEXT("Draw Debug Lines for Weapons"), ECVF_Cheat);
+FAutoConsoleVariableRef CVARDegubWeaponDrawing (TEXT("DebugWeapons"), DebugWeaponDrawing, TEXT("Draw Debug Lines for Weapons"), ECVF_Cheat);
 
 ASWeapon::ASWeapon()
 {
@@ -23,6 +23,7 @@ ASWeapon::ASWeapon()
 	RootComponent = MeshComp;
 
 	MuzzleSocketName = "MuzzleSocket";
+	CenterSocketName = "CenterSocket";
 	TracerTargetName = "Target";
 
 	SetReplicates(true);
@@ -93,6 +94,27 @@ void ASWeapon::Fire()
 
 	if (MyOwner)
 	{
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(MyOwner);
+		QueryParams.AddIgnoredActor(this);
+		QueryParams.bTraceComplex = true;
+		QueryParams.bReturnPhysicalMaterial = true;
+
+		FHitResult Hit;
+
+		//Check if weapon is inside a wall, don't allow shooting if thats the case
+		FVector WeaponCenter = MeshComp->GetSocketLocation(CenterSocketName);
+		FVector WeaponMuzzle = MeshComp->GetSocketLocation(MuzzleSocketName);
+
+		if (GetWorld()->LineTraceSingleByChannel(Hit, WeaponCenter, WeaponMuzzle, COLLISION_WEAPON, QueryParams))
+		{
+			if (DebugWeaponDrawing > 0)
+			{
+				DrawDebugLine(GetWorld(), WeaponCenter, WeaponMuzzle, FColor::Red, false, 1.0f, 0, 1.0f);
+			}
+			return;
+		}
+
 		FVector TraceStart;
 		FRotator EyeRotation;
 		MyOwner->GetActorEyesViewPoint(TraceStart, EyeRotation);
@@ -101,29 +123,17 @@ void ASWeapon::Fire()
 
 		FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData->HitMaxDistance);
 
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(MyOwner);
-		QueryParams.AddIgnoredActor(this);
-		QueryParams.bTraceComplex = true;
-		QueryParams.bReturnPhysicalMaterial = true;
-
 		FMulticastShotData MulticastData;
-
 		FVector TracerEndPoint = TraceEnd;
-		FHitResult Hit;
 
 		//Get where the crosshair is looking
 		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
-			TraceEnd = Hit.ImpactPoint;
+			TraceEnd = Hit.ImpactPoint + (TraceEnd-TraceStart).GetUnsafeNormal();
 		}
 
-		TraceStart = MeshComp->GetSocketLocation(MuzzleSocketName);
-
-		TraceStart = TraceStart + (TraceStart - TraceEnd).GetSafeNormal() * 50;
-
 		//Get from the Weapon Muzzle to the new TraceEnd
-		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
+		if (GetWorld()->LineTraceSingleByChannel(Hit, WeaponMuzzle, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
 			AActor* HitActor = Hit.GetActor();
 
@@ -149,13 +159,16 @@ void ASWeapon::Fire()
 		
 		if (DebugWeaponDrawing > 0) 
 		{
-			DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+			DrawDebugLine(GetWorld(), WeaponMuzzle, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+
+			if (!MulticastData.HitTarget) 
+			{
+				DrawDebugSphere(GetWorld(), TraceEnd, 20, 8, FColor::Yellow, false, 1.0f, 0, 1.0f);
+			}
 		}
 
 		MultiCastFire(MulticastData);
-
 	}
-
 }
 
 void ASWeapon::MultiCastFire_Implementation(FMulticastShotData MulticastData)

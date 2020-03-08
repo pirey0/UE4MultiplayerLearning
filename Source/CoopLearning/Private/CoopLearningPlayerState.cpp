@@ -24,6 +24,12 @@ int ACoopLearningPlayerState::GetDeaths()
 	return Deaths;
 }
 
+void ACoopLearningPlayerState::Reset()
+{
+	Deaths = 0;
+	Kills = 0;
+}
+
 FString ACoopLearningPlayerState::GetPlayerInfo()
 {
 	
