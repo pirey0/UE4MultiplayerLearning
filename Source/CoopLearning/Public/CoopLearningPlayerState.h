@@ -18,9 +18,11 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	int Kills;
 
-
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	int Deaths;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FLinearColor Color;
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -40,4 +42,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetName(FString S);
+
+	UFUNCTION(BlueprintCallable)
+	void SetColor(FLinearColor NewColor);
 };

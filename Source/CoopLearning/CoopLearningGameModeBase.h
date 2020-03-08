@@ -20,4 +20,7 @@ protected:
 	UFUNCTION(Exec, Category = "Cheats")
 	void ResetAllKDA();
 
+public:
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };

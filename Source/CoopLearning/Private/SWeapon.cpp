@@ -58,8 +58,11 @@ void ASWeapon::BeginPlay()
 
 	TimeBetweenShots = 60 / WeaponsData->RateOfFire;
 
-	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
-	CurrentMagazineCount = WeaponsData->DefaultMagazineCount;
+	if (Role >= ROLE_Authority)
+	{
+		CurrentBulletCount = WeaponsData->BulletsPerMagazine;
+		CurrentMagazineCount = WeaponsData->DefaultMagazineCount;
+	}
 }
 
 void ASWeapon::StartFire()
@@ -184,6 +187,7 @@ void ASWeapon::Fire()
 
 			TracerEndPoint = Hit.ImpactPoint;
 
+			MulticastData.NoShot = false;
 			MulticastData.HitTarget = true;
 			MulticastData.ImpactPoint = Hit.ImpactPoint;
 			MulticastData.ImpactNormal = Hit.ImpactNormal;

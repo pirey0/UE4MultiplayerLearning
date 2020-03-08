@@ -42,6 +42,11 @@ void ACoopLearningPlayerState::SetName(FString S)
 	SetPlayerName(S);
 }
 
+void ACoopLearningPlayerState::SetColor(FLinearColor NewColor)
+{
+	Color = NewColor;
+}
+
 
 void ACoopLearningPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -49,4 +54,5 @@ void ACoopLearningPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 
 	DOREPLIFETIME(ACoopLearningPlayerState, Kills);
 	DOREPLIFETIME(ACoopLearningPlayerState, Deaths);
+	DOREPLIFETIME(ACoopLearningPlayerState, Color);
 }

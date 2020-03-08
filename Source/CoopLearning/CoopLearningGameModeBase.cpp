@@ -15,6 +15,11 @@ void ACoopLearningGameModeBase::ResetAllKDA()
 		PS->Reset();
 	}
 	
-	
+}
 
+void ACoopLearningGameModeBase::PostLogin(APlayerController * NewPlayer)
+{
+	ACoopLearningPlayerState* PS = Cast<ACoopLearningPlayerState>(NewPlayer->PlayerState);
+	PS->SetColor(FLinearColor::MakeRandomColor());
+	Super::PostLogin(NewPlayer);
 }
