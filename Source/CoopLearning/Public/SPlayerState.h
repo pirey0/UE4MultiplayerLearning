@@ -16,13 +16,19 @@ class COOPLEARNING_API ASPlayerState : public APlayerState
 	
 protected:
 	UPROPERTY(Replicated, BlueprintReadOnly)
-		int Kills;
+	int Kills;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-		int Deaths;
+	int Deaths;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-		FLinearColor Color;
+	int KillsInARow;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	int DeathInARow;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FLinearColor Color;
 
 public:
 	UFUNCTION(BlueprintCallable)

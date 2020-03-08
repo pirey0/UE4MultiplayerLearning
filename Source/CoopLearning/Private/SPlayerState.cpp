@@ -6,11 +6,15 @@
 void ASPlayerState::AddKill()
 {
 	Kills += 1;
+	KillsInARow += 1;
+	DeathInARow = 0;
 }
 
 void ASPlayerState::AddDeath()
 {
 	Deaths += 1;
+	DeathInARow += 1;
+	KillsInARow = 0;
 }
 
 int ASPlayerState::GetKills()
@@ -27,6 +31,8 @@ void ASPlayerState::Reset()
 {
 	Deaths = 0;
 	Kills = 0;
+	KillsInARow = 0;
+	DeathInARow = 0;
 }
 
 FString ASPlayerState::GetPlayerInfo()

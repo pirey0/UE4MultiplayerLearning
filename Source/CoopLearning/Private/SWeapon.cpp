@@ -34,6 +34,8 @@ ASWeapon::ASWeapon()
 	NetUpdateFrequency = 66;
 	MinNetUpdateFrequency = 33;
 	DespawnTime = 15;
+	SpeedEqualToMaxSpread = 450;
+
 	//Load from Data Table
 
 	WeaponsDataName = FName(TEXT("Rifle"));
@@ -160,14 +162,20 @@ void ASWeapon::Fire()
 
 		FVector ShotDirection = EyeRotation.Vector();
 
+		float SpreadMultiplyer = FMath::GetMappedRangeValueClamped(FVector2D(0, SpeedEqualToMaxSpread), FVector2D(0, 1), MyOwner->GetVelocity().Size());
+
+		float SpreadAmount = (WeaponsData->MaxSpreadInDegrees / 360.0f) * SpreadMultiplyer;
+
+		ShotDirection = FMath::VRandCone(ShotDirection, SpreadAmount);
+
 		FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData->HitMaxDistance);
 
 		FVector TracerEndPoint = TraceEnd;
 
-		//Get where the crosshair is looking
+		//Get where the crosshair is looking so that you can hit close objects
 		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
-			TraceEnd = Hit.ImpactPoint + (TraceEnd-TraceStart).GetUnsafeNormal();
+			TraceEnd = WeaponMuzzle + (Hit.ImpactPoint - WeaponMuzzle) * WeaponsData->HitMaxDistance;
 		}
 
 		//Get from the Weapon Muzzle to the new TraceEnd
