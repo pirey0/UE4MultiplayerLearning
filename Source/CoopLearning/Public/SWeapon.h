@@ -36,6 +36,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HitMaxDistance;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int BulletsPerMagazine;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int DefaultMagazineCount;
+
 };
 
 
@@ -124,12 +130,20 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastFire(FMulticastShotData MulticastData);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerReload();
+
 	FTimerHandle TimerHandle_TimeBetweenShots;
 
 	float LastFireTimeStamp;
 
 	float TimeBetweenShots;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
+	int CurrentBulletCount;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
+	int CurrentMagazineCount;
 
 public:
 	void StartFire();
@@ -139,5 +153,7 @@ public:
 	void GetEquippedBy(AActor* NewOwner);
 
 	void Unequip();
+
+	void Reload();
 
 };

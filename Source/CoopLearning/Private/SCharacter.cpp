@@ -146,6 +146,14 @@ void ASCharacter::StopFire()
 	}
 }
 
+void ASCharacter::BeginReload()
+{
+	if (CurrentWeapon) 
+	{
+		CurrentWeapon->Reload();
+	}
+}
+
 void ASCharacter::BeginPickup()
 {
 	//Check on the client first if there is an overlapping weapon
@@ -344,6 +352,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &ASCharacter::BeginPickup);
 
 	PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &ASCharacter::BeginDrop);
+
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASCharacter::BeginReload);
 
 }
 

@@ -47,6 +47,8 @@ protected:
 
 	void StopFire();
 
+	void BeginReload();
+
 	void BeginPickup();
 
 	void BeginDrop();
@@ -73,7 +75,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USphereComponent* DetectionComp;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")

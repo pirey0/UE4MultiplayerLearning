@@ -11,6 +11,7 @@
 #include "TimerManager.h"
 #include "Engine/DataTable.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Net/UnrealNetwork.h"
 
 static int32 DebugWeaponDrawing = 0;
 
@@ -40,6 +41,16 @@ ASWeapon::ASWeapon()
 		WeaponsData = WeaponsDataTableObject.Object->FindRow<FWeaponData>(WeaponsDataName, "Rifle",true);
 	}
 
+}
+
+void ASWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TimeBetweenShots = 60 / WeaponsData->RateOfFire;
+
+	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
+	CurrentMagazineCount = WeaponsData->DefaultMagazineCount;
 }
 
 void ASWeapon::StartFire()
@@ -94,6 +105,16 @@ void ASWeapon::Fire()
 
 	if (MyOwner)
 	{
+		if (CurrentBulletCount <= 0)
+		{
+			//Out of ammo
+			// Force Reload?
+			//Play no ammo sound
+
+			return;
+		}
+
+
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
 		QueryParams.AddIgnoredActor(this);
@@ -155,8 +176,11 @@ void ASWeapon::Fire()
 			MulticastData.SurfaceType = SurfaceType;
 		}
 		
+		CurrentBulletCount -= 1;
+
 		MulticastData.TraceEndPoint = TracerEndPoint;
-		
+		MultiCastFire(MulticastData);
+
 		if (DebugWeaponDrawing > 0) 
 		{
 			DrawDebugLine(GetWorld(), WeaponMuzzle, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
@@ -166,9 +190,40 @@ void ASWeapon::Fire()
 				DrawDebugSphere(GetWorld(), TraceEnd, 20, 8, FColor::Yellow, false, 1.0f, 0, 1.0f);
 			}
 		}
-
-		MultiCastFire(MulticastData);
 	}
+}
+
+void ASWeapon::Reload()
+{
+	if (Role < ROLE_Authority)
+	{
+		ServerReload();
+		return;
+	}
+
+	if (CurrentMagazineCount <= 0) 
+	{
+		//Out of magazines
+		return;
+	}
+
+	CurrentMagazineCount -= 1;
+	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
+
+	//Play reload animation;
+	//Dont allow shooting while reloading
+
+}
+
+
+void ASWeapon::ServerReload_Implementation()
+{
+	Reload();
+}
+
+bool ASWeapon::ServerReload_Validate()
+{
+	return true;
 }
 
 void ASWeapon::MultiCastFire_Implementation(FMulticastShotData MulticastData)
@@ -189,14 +244,6 @@ void ASWeapon::ServerFire_Implementation()
 bool ASWeapon::ServerFire_Validate() 
 {
 	return true;
-}
-
-
-void ASWeapon::BeginPlay()
-{
-	Super::BeginPlay();
-
-	TimeBetweenShots = 60 / WeaponsData->RateOfFire;
 }
 
 void ASWeapon::PlayFireEffects(FVector TracerEndPoint)
@@ -254,4 +301,12 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, ImpactPoint, ImpactNormal.Rotation());
 	}
+}
+
+void ASWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASWeapon, CurrentBulletCount);
+	DOREPLIFETIME(ASWeapon, CurrentMagazineCount);
 }
