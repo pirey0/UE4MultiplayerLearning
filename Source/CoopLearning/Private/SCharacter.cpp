@@ -14,7 +14,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/GameModeBase.h"
-#include "CoopLearningPlayerController.h"
+#include "SPlayerController.h"
 
 
 // Sets default values

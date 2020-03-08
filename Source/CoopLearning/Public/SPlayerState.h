@@ -4,32 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
-#include "CoopLearningPlayerState.generated.h"
+#include "SPlayerState.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class COOPLEARNING_API ACoopLearningPlayerState : public APlayerState
+class COOPLEARNING_API ASPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 	
 protected:
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	int Kills;
+		int Kills;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	int Deaths;
+		int Deaths;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	FLinearColor Color;
+		FLinearColor Color;
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void AddKill();
+		void AddKill();
 
 	UFUNCTION(BlueprintCallable)
-	void AddDeath();
+		void AddDeath();
 
 	int GetKills();
 
@@ -38,11 +38,12 @@ public:
 	void Reset();
 
 	UFUNCTION(BlueprintCallable)
-	FString GetPlayerInfo();
+		FString GetPlayerInfo();
 
 	UFUNCTION(BlueprintCallable)
-	void SetName(FString S);
+		void SetName(FString S);
 
 	UFUNCTION(BlueprintCallable)
-	void SetColor(FLinearColor NewColor);
+		void SetColor(FLinearColor NewColor);
 };
+

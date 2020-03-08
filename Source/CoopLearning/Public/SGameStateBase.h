@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
-#include "CoopLearningGameStateBase.generated.h"
+#include "SGameStateBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class COOPLEARNING_API ACoopLearningGameStateBase : public AGameStateBase
+class COOPLEARNING_API ASGameStateBase : public AGameStateBase
 {
 	GENERATED_BODY()
 	
@@ -18,6 +18,6 @@ class COOPLEARNING_API ACoopLearningGameStateBase : public AGameStateBase
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameState")
-	FString GetAllPlayersInfo();
+		FString GetAllPlayersInfo();
 
 };

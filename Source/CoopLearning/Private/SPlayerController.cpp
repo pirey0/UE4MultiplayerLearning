@@ -1,13 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "CoopLearningPlayerController.h"
+
+#include "SPlayerController.h"
 #include "Engine/World.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/SpectatorPawn.h"
 
-void ACoopLearningPlayerController::RespawnDefaultPawnAndPossess() 
+void ASPlayerController::RespawnDefaultPawnAndPossess()
 {
-	if (Role >= ROLE_Authority) 
+	if (Role >= ROLE_Authority)
 	{
 		AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
 
@@ -28,7 +29,7 @@ void ACoopLearningPlayerController::RespawnDefaultPawnAndPossess()
 
 }
 
-void ACoopLearningPlayerController::SpawnSpectatorAndPossess()
+void ASPlayerController::SpawnSpectatorAndPossess()
 {
 
 	AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
@@ -38,23 +39,24 @@ void ACoopLearningPlayerController::SpawnSpectatorAndPossess()
 	Possess(spectatorPawn);
 }
 
-void ACoopLearningPlayerController::OnPossess(APawn* InPawn)
+void ASPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	if (Role >= ROLE_Authority) 
+	if (Role >= ROLE_Authority)
 	{
 		OnPossessWithAuthority.Broadcast(this, InPawn);
 	}
 }
 
-void ACoopLearningPlayerController::OnUnPossess()
+void ASPlayerController::OnUnPossess()
 {
 	Super::OnUnPossess();
 
-	if (Role >= ROLE_Authority) 
+	if (Role >= ROLE_Authority)
 	{
 		OnUnPossessWithAuthority.Broadcast(this);
 	}
 
 }
+

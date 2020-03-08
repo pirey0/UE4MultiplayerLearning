@@ -4,23 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "CoopLearningGameModeBase.generated.h"
+#include "SGameModeBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class COOPLEARNING_API ACoopLearningGameModeBase : public AGameModeBase
+class COOPLEARNING_API ASGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-
 protected:
 
 	UFUNCTION(Exec, Category = "Cheats")
-	void ResetAllKDA();
+		void ResetAllKDA();
 
 public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 };
