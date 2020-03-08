@@ -18,7 +18,6 @@ class COOPLEARNING_API ACoopLearningPlayerController : public APlayerController
 	
 protected:
 
-	
 	UFUNCTION(BlueprintCallable)
 	void RespawnDefaultPawnAndPossess();
 
@@ -31,4 +30,7 @@ protected:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnUnPossessSignature OnUnPossessWithAuthority;
+
+public:
+	void SpawnSpectatorAndPossess();
 };

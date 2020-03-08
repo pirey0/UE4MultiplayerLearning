@@ -3,6 +3,7 @@
 #include "CoopLearningPlayerController.h"
 #include "Engine/World.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/SpectatorPawn.h"
 
 void ACoopLearningPlayerController::RespawnDefaultPawnAndPossess() 
 {
@@ -27,7 +28,17 @@ void ACoopLearningPlayerController::RespawnDefaultPawnAndPossess()
 
 }
 
-void ACoopLearningPlayerController::OnPossess(APawn* InPawn) 
+void ACoopLearningPlayerController::SpawnSpectatorAndPossess()
+{
+
+	AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
+
+	ASpectatorPawn* spectatorPawn = SpawnSpectatorPawn();
+
+	Possess(spectatorPawn);
+}
+
+void ACoopLearningPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 

@@ -12,6 +12,10 @@
 #include "Net/UnrealNetwork.h"
 #include "CoopLearning.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/GameModeBase.h"
+#include "CoopLearningPlayerController.h"
+
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -267,6 +271,7 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
 
 		DetachFromControllerPendingDestroy();
+
 		SetLifeSpan(10.0f);
 	}
 

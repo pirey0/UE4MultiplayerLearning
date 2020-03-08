@@ -77,7 +77,7 @@ public:
 	FVector_NetQuantize TraceEndPoint;
 
 	UPROPERTY()
-	FVector_NetQuantize ImpactPoint;
+	FVector_NetQuantize10 ImpactPoint;
 
 	UPROPERTY()
 	FVector_NetQuantizeNormal ImpactNormal;
