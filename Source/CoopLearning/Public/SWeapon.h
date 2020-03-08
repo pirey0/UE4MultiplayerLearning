@@ -11,7 +11,7 @@ class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
 class UCameraShake;
-
+class USoundCue;
 
 
 USTRUCT(BlueprintType)
@@ -44,6 +44,24 @@ public:
 
 };
 
+USTRUCT(BlueprintType)
+struct FWeaponSoundData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* Shot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* NoAmmo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* Reload;
+
+};
+
 
 USTRUCT()
 struct FMulticastShotData 
@@ -67,6 +85,8 @@ public:
 	UPROPERTY()
 	TEnumAsByte<EPhysicalSurface> SurfaceType;
 
+	UPROPERTY()
+	bool NoShot;
 };
 
 UCLASS()
@@ -84,6 +104,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	FWeaponData* WeaponsData;
+
+	FWeaponSoundData* WeaponsSoundData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponsDataName;
@@ -144,6 +166,9 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
 	int CurrentMagazineCount;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	float DespawnTime;
 
 public:
 	void StartFire();

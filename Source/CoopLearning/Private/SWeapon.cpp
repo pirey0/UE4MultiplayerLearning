@@ -12,6 +12,7 @@
 #include "Engine/DataTable.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Net/UnrealNetwork.h"
+#include "Sound/SoundCue.h"
 
 static int32 DebugWeaponDrawing = 0;
 
@@ -32,6 +33,8 @@ ASWeapon::ASWeapon()
 
 	NetUpdateFrequency = 66;
 	MinNetUpdateFrequency = 33;
+	DespawnTime = 15;
+	//Load from Data Table
 
 	WeaponsDataName = FName(TEXT("Rifle"));
 
@@ -39,6 +42,12 @@ ASWeapon::ASWeapon()
 	if (WeaponsDataTableObject.Succeeded())
 	{
 		WeaponsData = WeaponsDataTableObject.Object->FindRow<FWeaponData>(WeaponsDataName, "Rifle",true);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> WeaponsSoundDataTableObject(TEXT("DataTable'/Game/Core/DT_WeaponsSounds.DT_WeaponsSounds'"));
+	if (WeaponsSoundDataTableObject.Succeeded())
+	{
+		WeaponsSoundData = WeaponsSoundDataTableObject.Object->FindRow<FWeaponSoundData>(WeaponsDataName, "Rifle", true);
 	}
 
 }
@@ -70,6 +79,7 @@ void ASWeapon::GetEquippedBy(AActor * NewOwner)
 	SetOwner(NewOwner);
 	MeshComp->SetSimulatePhysics(false);
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetLifeSpan(0);
 }
 
 void ASWeapon::Unequip()
@@ -88,6 +98,8 @@ void ASWeapon::Unequip()
 		MeshComp->SetPhysicsLinearVelocity(OwnerVelocity);
 		FVector Direction = GetActorRightVector() + FVector::UpVector;
 		MeshComp->AddImpulse(Direction * WeaponsData->ThrowForce);
+
+		SetLifeSpan(DespawnTime);
 	}
 }
 
@@ -105,12 +117,15 @@ void ASWeapon::Fire()
 
 	if (MyOwner)
 	{
+		FMulticastShotData MulticastData;
+
 		if (CurrentBulletCount <= 0)
 		{
 			//Out of ammo
 			// Force Reload?
 			//Play no ammo sound
-
+			MulticastData.NoShot = true;
+			MultiCastFire(MulticastData);
 			return;
 		}
 
@@ -144,7 +159,6 @@ void ASWeapon::Fire()
 
 		FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData->HitMaxDistance);
 
-		FMulticastShotData MulticastData;
 		FVector TracerEndPoint = TraceEnd;
 
 		//Get where the crosshair is looking
@@ -228,11 +242,21 @@ bool ASWeapon::ServerReload_Validate()
 
 void ASWeapon::MultiCastFire_Implementation(FMulticastShotData MulticastData)
 {
-	PlayFireEffects(MulticastData.TraceEndPoint);
-
-	if (MulticastData.HitTarget) 
+	if (MulticastData.NoShot) 
 	{
-		PlayImpactEffects(MulticastData.ImpactPoint, MulticastData.ImpactNormal, MulticastData.SurfaceType);
+		if (WeaponsSoundData->NoAmmo)
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->NoAmmo, MeshComp->GetSocketLocation(MuzzleSocketName));
+		}
+	}
+	else 
+	{
+		PlayFireEffects(MulticastData.TraceEndPoint);
+
+		if (MulticastData.HitTarget)
+		{
+			PlayImpactEffects(MulticastData.ImpactPoint, MulticastData.ImpactNormal, MulticastData.SurfaceType);
+		}
 	}
 }
 
@@ -275,6 +299,11 @@ void ASWeapon::PlayFireEffects(FVector TracerEndPoint)
 		{
 			PC->ClientPlayCameraShake(FireCamShake);
 		}
+	}
+
+	if (WeaponsSoundData->Shot)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Shot, MeshComp->GetSocketLocation(MuzzleSocketName));
 	}
 }
 
