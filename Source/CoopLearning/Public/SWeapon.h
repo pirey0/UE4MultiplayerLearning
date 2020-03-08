@@ -42,6 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int DefaultMagazineCount;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxSpreadInDegrees;
+
 };
 
 USTRUCT(BlueprintType)
@@ -77,7 +80,7 @@ public:
 	FVector_NetQuantize TraceEndPoint;
 
 	UPROPERTY()
-	FVector_NetQuantize10 ImpactPoint;
+	FVector_NetQuantize ImpactPoint;
 
 	UPROPERTY()
 	FVector_NetQuantizeNormal ImpactNormal;
@@ -169,6 +172,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float DespawnTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	float SpeedEqualToMaxSpread;
 
 public:
 	void StartFire();
