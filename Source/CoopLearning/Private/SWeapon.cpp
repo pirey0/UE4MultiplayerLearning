@@ -336,8 +336,6 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 
 	default:
 		SelectedEffect = DefaultImpactEffect;
-
-		UE_LOG(LogTemp, Log, TEXT("%S"), *BulletHitDecal->GetName());
 		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletHitDecal, BulletHitDecalSize, ImpactPoint, ImpactNormal.Rotation(), BulletHitDecalLifetime);
 		Decal->SetFadeScreenSize(0.001f);
 

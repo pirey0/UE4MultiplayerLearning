@@ -12,6 +12,18 @@ class ASWeapon;
 class USHealthComponent;
 class USphereComponent;
 
+
+UENUM()
+enum CharacterState
+{
+	STATE_NoControl = 0,
+	STATE_NoMovement = 2,
+	STATE_NoSpecialMovement = 3,
+	STATE_NoShoot = 5,
+
+	STATE_FullControl = 10
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
 
 UCLASS()
@@ -30,6 +42,10 @@ protected:
 	void MoveForward(float Value);
 
 	void MoveRight(float Value);
+
+	void MoveCameraYaw(float Value);
+
+	void MoveCameraPitch(float Value);
 
 	float GetAimSlowdownMultiplyer();
 
@@ -114,6 +130,15 @@ protected:
 
 	ASWeapon* GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors);
 
+	UPROPERTY(BlueprintReadOnly, Category = "Play")
+	TEnumAsByte<CharacterState> State;
+
+	TEnumAsByte<CharacterState> PreviousState;
+
+	FTimerHandle TimerHandle_StateSet;
+
+	void SetStateToPrevious();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -125,5 +150,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDeathSignature OnDeath;
+
+	UFUNCTION(BlueprintCallable)
+	void SetCharacterState(CharacterState NewState, float Duration = -1);
 
 };

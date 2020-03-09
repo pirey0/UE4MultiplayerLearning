@@ -15,7 +15,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/GameModeBase.h"
 #include "SPlayerController.h"
-
+#include "TimerManager.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -42,6 +42,8 @@ ASCharacter::ASCharacter()
 	ZoomInterpSpeed = 40;
 
 	WeaponAttachSocketName = "WeaponSocket";
+
+	State = STATE_FullControl;
 }
 
 void ASCharacter::BeginPlay()
@@ -64,13 +66,36 @@ void ASCharacter::BeginPlay()
 
 void ASCharacter::MoveForward(float Value)
 {
-
-	AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer());
+	if (State > STATE_NoMovement) 
+	{
+		AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer());
+	}
 }
 
 void ASCharacter::MoveRight(float Value)
 {
-	AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer());
+	if (State > STATE_NoMovement)
+	{
+		AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer());
+	}
+}
+
+void ASCharacter::MoveCameraYaw(float Value)
+{
+	if (State > STATE_NoControl) 
+	{
+		AddControllerYawInput(Value);
+	}
+
+}
+
+void ASCharacter::MoveCameraPitch(float Value)
+{
+	if (State > STATE_NoControl) 
+	{
+		AddControllerPitchInput(Value);
+	}
+
 }
 
 float ASCharacter::GetAimSlowdownMultiplyer()
@@ -80,7 +105,11 @@ float ASCharacter::GetAimSlowdownMultiplyer()
 
 void ASCharacter::BeginCrouch()
 {
-	Crouch();
+	if (State > STATE_NoSpecialMovement)
+	{
+		Crouch();
+	}
+
 }
 
 void ASCharacter::EndCrouch()
@@ -90,8 +119,12 @@ void ASCharacter::EndCrouch()
 
 void ASCharacter::BeginJump()
 {
-	JumpKeyHoldTime = 0.1;
-	Jump();
+	if (State > STATE_NoSpecialMovement) 
+	{
+		JumpKeyHoldTime = 0.1;
+		Jump();
+	}
+
 }
 
 void ASCharacter::BeginZoom()
@@ -136,7 +169,7 @@ bool ASCharacter::ServerEndZoom_Validate()
 
 void ASCharacter::BeginFire()
 {
-	if (CurrentWeapon)
+	if (CurrentWeapon && State > STATE_NoShoot)
 	{
 		CurrentWeapon->StartFire();
 	}
@@ -155,6 +188,7 @@ void ASCharacter::BeginReload()
 	if (CurrentWeapon) 
 	{
 		CurrentWeapon->Reload();
+		SetCharacterState(STATE_NoShoot, 1.0f);
 	}
 }
 
@@ -339,8 +373,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("MoveForward", this, &ASCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ASCharacter::MoveRight);
 
-	PlayerInputComponent->BindAxis("LookUp", this, &ASCharacter::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("Turn", this, &ASCharacter::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &ASCharacter::MoveCameraPitch);
+	PlayerInputComponent->BindAxis("Turn", this, &ASCharacter::MoveCameraYaw);
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASCharacter::BeginCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASCharacter::EndCrouch);
@@ -371,6 +405,32 @@ FVector ASCharacter::GetPawnViewLocation() const
 
 	return Super::GetPawnViewLocation();
 }
+
+void ASCharacter::SetCharacterState(CharacterState NewState, float Duration)
+{
+	PreviousState = State;
+	State = NewState;
+	UE_LOG(LogTemp, Log, TEXT("State changed"));
+
+	if (Duration > 0)
+	{
+		GetWorldTimerManager().SetTimer(TimerHandle_StateSet, this, &ASCharacter::SetStateToPrevious, Duration, false);
+	}
+	else {
+		GetWorldTimerManager().ClearTimer(TimerHandle_StateSet);
+	}
+
+}
+
+
+void ASCharacter::SetStateToPrevious()
+{
+	CharacterState OldState = State;
+	State = PreviousState;
+	PreviousState = OldState;
+	UE_LOG(LogTemp, Log, TEXT("State returned to previous"));
+}
+
 
 void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const 
 {
