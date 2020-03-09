@@ -35,12 +35,18 @@ void ASGameModeBase::PostLogin(APlayerController * NewPlayer)
 	PS->SetColor(FLinearColor::MakeRandomColor());
 	Super::PostLogin(NewPlayer);
 	
-
 	ASPlayerController* PC = Cast<ASPlayerController>(NewPlayer);
 
 	if (PC)
 	{
 		PC->OnPossessWithAuthority.AddDynamic(this, &ASGameModeBase::OnPlayerPossesWithAuthority);
+		 
+		ASCharacter* NewCharacter = Cast<ASCharacter>(PC->GetPawn());
+
+		if (NewCharacter) 
+		{
+			NewCharacter->OnDeath.AddDynamic(this, &ASGameModeBase::OnPlayerCharacterDeath);
+		}
 	}
 }
 
@@ -58,7 +64,6 @@ void ASGameModeBase::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn 
 void ASGameModeBase::OnPlayerCharacterDeath(ASCharacter * Character, AController * InstigatedBy, AActor * DamageCauser)
 {
 	ASPlayerController* PC = Cast<ASPlayerController>(Character->Controller);
-
 	if (PC)
 	{
 		PC->DelayedRespawnDefaultPawnAndPossess(PlayerRespawnTime);

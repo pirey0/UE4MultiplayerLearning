@@ -42,8 +42,8 @@ void ASPlayerController::SpawnSpectatorAndPossess()
 
 void ASPlayerController::DelayedRespawnDefaultPawnAndPossess(float DelayTime)
 {
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASPlayerController::SpawnSpectatorAndPossess, DelayTime, false);
+	UE_LOG(LogTemp, Log, TEXT("Called Respawn Pawn"));
+	GetWorldTimerManager().SetTimer(TimerHandle_Respawn, this, &ASPlayerController::RespawnDefaultPawnAndPossess, DelayTime, false);
 }
 
 void ASPlayerController::OnPossess(APawn* InPawn)

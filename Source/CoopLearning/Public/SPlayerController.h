@@ -23,6 +23,8 @@ protected:
 
 	void OnUnPossess() override;
 
+	FTimerHandle TimerHandle_Respawn;
+
 public:
 	void SpawnSpectatorAndPossess();
 

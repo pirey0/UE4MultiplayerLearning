@@ -20,8 +20,10 @@ protected:
 	UFUNCTION(Exec, Category = "Cheats")
 		void ResetAllKDA();
 
+	UFUNCTION()
 	virtual void OnPlayerPossesWithAuthority(ASPlayerController* PC, APawn* NewPawn);
 	
+	UFUNCTION()
 	virtual void OnPlayerCharacterDeath( ASCharacter* Character, AController* InstigatedBy, AActor* DamageCauser);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameMode")
