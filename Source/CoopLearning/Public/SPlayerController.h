@@ -17,11 +17,14 @@ class COOPLEARNING_API ASPlayerController : public APlayerController
 protected:
 
 	UFUNCTION(BlueprintCallable)
-		void RespawnDefaultPawnAndPossess();
+	void RespawnDefaultPawnAndPossess();
 
 	void OnPossess(APawn* InPawn) override;
 
 	void OnUnPossess() override;
+
+public:
+	void SpawnSpectatorAndPossess();
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnPossessSignature OnPossessWithAuthority;
@@ -29,6 +32,5 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnUnPossessSignature OnUnPossessWithAuthority;
 
-public:
-	void SpawnSpectatorAndPossess();
+	void DelayedRespawnDefaultPawnAndPossess(float DelayTime);
 };
