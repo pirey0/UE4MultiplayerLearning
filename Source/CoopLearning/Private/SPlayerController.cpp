@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/SpectatorPawn.h"
+#include "TimerManager.h"
 
 void ASPlayerController::RespawnDefaultPawnAndPossess()
 {
@@ -37,6 +38,12 @@ void ASPlayerController::SpawnSpectatorAndPossess()
 	ASpectatorPawn* spectatorPawn = SpawnSpectatorPawn();
 
 	Possess(spectatorPawn);
+}
+
+void ASPlayerController::DelayedRespawnDefaultPawnAndPossess(float DelayTime)
+{
+	UE_LOG(LogTemp, Log, TEXT("Called Respawn Pawn"));
+	GetWorldTimerManager().SetTimer(TimerHandle_Respawn, this, &ASPlayerController::RespawnDefaultPawnAndPossess, DelayTime, false);
 }
 
 void ASPlayerController::OnPossess(APawn* InPawn)

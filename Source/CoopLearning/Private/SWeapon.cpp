@@ -234,6 +234,8 @@ void ASWeapon::Reload()
 		return;
 	}
 
+	StopFire();
+
 	CurrentMagazineCount -= 1;
 	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
 
@@ -336,7 +338,7 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 
 	default:
 		SelectedEffect = DefaultImpactEffect;
-		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletHitDecal, BulletHitDecalSize, ImpactPoint, ImpactNormal.Rotation(), BulletHitDecalLifetime);
+		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletHitDecal, BulletHitDecalSize, ImpactPoint, (-ImpactNormal).Rotation(), BulletHitDecalLifetime);
 		Decal->SetFadeScreenSize(0.001f);
 
 		break;

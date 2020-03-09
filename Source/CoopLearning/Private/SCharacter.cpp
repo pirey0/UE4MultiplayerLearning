@@ -302,6 +302,7 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		BeginDrop();
 		GetMesh()->SetSimulatePhysics(true);
 		MulticastOnDeathEffects();
+		UE_LOG(LogTemp, Log, TEXT("Calling OnDeath"));
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
 
 		DetachFromControllerPendingDestroy();
