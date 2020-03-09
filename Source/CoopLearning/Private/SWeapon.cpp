@@ -13,6 +13,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
+#include "Components/DecalComponent.h"
 
 static int32 DebugWeaponDrawing = 0;
 
@@ -337,7 +338,8 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 		SelectedEffect = DefaultImpactEffect;
 
 		UE_LOG(LogTemp, Log, TEXT("%S"), *BulletHitDecal->GetName());
-		UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletHitDecal, BulletHitDecalSize, ImpactPoint, ImpactNormal.Rotation(), BulletHitDecalLifetime);
+		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BulletHitDecal, BulletHitDecalSize, ImpactPoint, ImpactNormal.Rotation(), BulletHitDecalLifetime);
+		Decal->SetFadeScreenSize(0.001f);
 
 		break;
 	}
