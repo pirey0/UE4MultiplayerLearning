@@ -9,6 +9,7 @@
 class UCapsuleComponent;
 class USplineComponent;
 class UArrowComponent;
+class ACharacter;
 
 UCLASS()
 class COOPLEARNING_API ASZipline : public AActor
@@ -32,7 +33,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USplineComponent* SplineComp;
 
+	void ConstructCollider();
 
+public:
 
+	bool GetDirectionIsForward(FVector TargetForward);
 
+	FVector GetDirection(bool DirectionIsForeward);
+
+	FVector GetTargetLocation(bool DirectionIsForward);
+
+	bool DestinationReached(APawn* Target, bool DirectionIsForward, float ReachedDistance = 100);
 };

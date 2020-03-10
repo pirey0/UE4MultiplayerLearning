@@ -11,6 +11,7 @@ class USpringArmComponent;
 class ASWeapon;
 class USHealthComponent;
 class USphereComponent;
+class ASZipline;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
 
@@ -141,6 +142,13 @@ protected:
 	FTimerHandle TimerHandle_StateSet;
 
 	void SetStateToPrevious();
+
+	ASZipline* CurrentZipline;
+
+	bool ZiplineDirectionIsForward;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerTryUseZipline();
 
 public:	
 	// Called every frame

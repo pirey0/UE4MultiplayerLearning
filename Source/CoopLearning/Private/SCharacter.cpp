@@ -17,7 +17,8 @@
 #include "SPlayerController.h"
 #include "TimerManager.h"
 #include "GameFramework/PlayerState.h"
-
+#include "SZipline.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -263,6 +264,7 @@ void ASCharacter::BeginInteract()
 	else 
 	{
 		TryPickup();
+		TryUseZipline();
 	}
 
 }
@@ -294,13 +296,39 @@ void ASCharacter::EquipWeapon(ASWeapon * NewWeapon)
 
 void ASCharacter::TryUseZipline()
 {
-	//search for zipline
-	//find zipline Direction
+
+	if (Role < ROLE_Authority)
+	{
+		ServerTryUseZipline();
+		return;
+	}
+
+	TArray<AActor*> ZiplinesInArea;
+	GetOverlappingActors(ZiplinesInArea, TSubclassOf<ASZipline>());
+
+	UE_LOG(LogTemp, Log, TEXT("SEARCHING FOR ZIPLINE"));
+
+	if (ZiplinesInArea.Num() > 0) 
+	{
+		CurrentZipline = Cast<ASZipline>(ZiplinesInArea[0]);
+
+		if (CurrentZipline) 
+		{
+			ZiplineDirectionIsForward = CurrentZipline->GetDirectionIsForward(GetActorForwardVector());
+
+			SetCharacterState(STATE_Zipline);
+
+			Cast<UCharacterMovementComponent>(GetMovementComponent())->SetMovementMode(EMovementMode::MOVE_Flying);		
+		}
+	}
+
+	
 	//go in zipline direction untill ends or cancelled
 }
 
 void ASCharacter::EndZiplineUse()
 {
+	Cast<UCharacterMovementComponent>(GetMovementComponent())->SetMovementMode(EMovementMode::MOVE_Walking);
 	SetCharacterState(STATE_Normal);
 }
 
@@ -380,6 +408,16 @@ ASWeapon* ASCharacter::GetClosestWeapon(FVector sourceLocation, TArray<AActor*> 
 	return closestActor;
 }
 
+void ASCharacter::ServerTryUseZipline_Implementation()
+{
+	TryUseZipline();
+}
+
+bool ASCharacter::ServerTryUseZipline_Validate()
+{
+	return true;
+}
+
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)
 {
@@ -396,7 +434,28 @@ void ASCharacter::Tick(float DeltaTime)
 
 		AimProgress = 1 - ((NewFOV - ZoomedFOV) / (DefaultFOV - ZoomedFOV));
 
+
+		if (State == STATE_Zipline) 
+		{
+			if (CurrentZipline)
+			{
+				AddMovementInput(CurrentZipline->GetDirection(ZiplineDirectionIsForward) * 1000);
+
+				if (CurrentZipline->DestinationReached(this, ZiplineDirectionIsForward)) 
+				{
+					EndZiplineUse();
+				}
+			}
+			else 
+			{
+				EndZiplineUse();
+			}
+		}
+
 	}
+
+
+
 }
 
 // Called to bind functionality to input
@@ -426,7 +485,7 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASCharacter::BeginReload);
 
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASCharacter::BeginInteract);
+	PlayerInputComponent->BindAction("Interaction", IE_Pressed, this, &ASCharacter::BeginInteract);
 
 }
 
