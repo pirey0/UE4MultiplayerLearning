@@ -305,7 +305,13 @@ void ASCharacter::OnHeathChanged(USHealthComponent * SourceHealthComp, float Hea
 		UE_LOG(LogTemp, Log, TEXT("Calling OnDeath"));
 		OnDeath.Broadcast(this, InstigatedBy, DamageCauser);
 
+		ASPlayerController* PC = Cast<ASPlayerController>(Controller);
 		DetachFromControllerPendingDestroy();
+
+		if (PC)
+		{
+			PC->BlendToController(InstigatedBy, 1);
+		}
 
 		SetLifeSpan(10.0f);
 	}

@@ -6,6 +6,13 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "TimerManager.h"
+#include "SCharacter.h"
+
+ASPlayerController::ASPlayerController() 
+{
+	bAutoManageActiveCameraTarget = false;
+	bFindCameraComponentWhenViewTarget = true;
+}
 
 void ASPlayerController::RespawnDefaultPawnAndPossess()
 {
@@ -46,9 +53,25 @@ void ASPlayerController::DelayedRespawnDefaultPawnAndPossess(float DelayTime)
 	GetWorldTimerManager().SetTimer(TimerHandle_Respawn, this, &ASPlayerController::RespawnDefaultPawnAndPossess, DelayTime, false);
 }
 
+void ASPlayerController::BlendToController(AController * KillerController, float Time)
+{
+	if (KillerController->GetPawn()) 
+	{
+		SetViewTargetWithBlend(KillerController->GetPawn(), Time, VTBlend_EaseOut, 0.5f);
+	}
+}
+
 void ASPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	ASCharacter* Character = Cast<ASCharacter>(InPawn);
+
+	if (Character)
+	{
+		SetViewTarget(InPawn);
+	}
+
 
 	if (Role >= ROLE_Authority)
 	{

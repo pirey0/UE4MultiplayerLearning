@@ -14,6 +14,9 @@ class COOPLEARNING_API ASPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+	ASPlayerController();
+
 protected:
 
 	UFUNCTION(BlueprintCallable)
@@ -35,4 +38,7 @@ public:
 		FOnUnPossessSignature OnUnPossessWithAuthority;
 
 	void DelayedRespawnDefaultPawnAndPossess(float DelayTime);
+
+	void BlendToController(AController* KillerController, float Time);
+
 };
