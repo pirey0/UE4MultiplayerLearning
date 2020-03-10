@@ -529,4 +529,5 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
 	DOREPLIFETIME(ASCharacter, bDied);
 	DOREPLIFETIME(ASCharacter, AimProgress);
+	DOREPLIFETIME(ASCharacter, State);
 }

@@ -134,7 +134,7 @@ protected:
 
 	ASWeapon* GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors);
 
-	UPROPERTY(BlueprintReadOnly, Category = "Play")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Play")
 	TEnumAsByte<ECharacterState> State;
 
 	TEnumAsByte<ECharacterState> PreviousState;
