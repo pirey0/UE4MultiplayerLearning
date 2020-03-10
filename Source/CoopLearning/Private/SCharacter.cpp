@@ -16,6 +16,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "SPlayerController.h"
 #include "TimerManager.h"
+#include "GameFramework/PlayerState.h"
+
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -43,7 +45,7 @@ ASCharacter::ASCharacter()
 
 	WeaponAttachSocketName = "WeaponSocket";
 
-	State = STATE_FullControl;
+	State = STATE_Normal;
 }
 
 void ASCharacter::BeginPlay()
@@ -66,7 +68,7 @@ void ASCharacter::BeginPlay()
 
 void ASCharacter::MoveForward(float Value)
 {
-	if (State > STATE_NoMovement) 
+	if (State == STATE_Normal || State == STATE_Reloading)
 	{
 		AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer());
 	}
@@ -74,7 +76,7 @@ void ASCharacter::MoveForward(float Value)
 
 void ASCharacter::MoveRight(float Value)
 {
-	if (State > STATE_NoMovement)
+	if (State == STATE_Normal || State == STATE_Reloading)
 	{
 		AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer());
 	}
@@ -82,7 +84,7 @@ void ASCharacter::MoveRight(float Value)
 
 void ASCharacter::MoveCameraYaw(float Value)
 {
-	if (State > STATE_NoControl) 
+	if (State == STATE_Normal || State == STATE_Reloading)
 	{
 		AddControllerYawInput(Value);
 	}
@@ -91,7 +93,7 @@ void ASCharacter::MoveCameraYaw(float Value)
 
 void ASCharacter::MoveCameraPitch(float Value)
 {
-	if (State > STATE_NoControl) 
+	if (State == STATE_Normal || State == STATE_Reloading)
 	{
 		AddControllerPitchInput(Value);
 	}
@@ -105,7 +107,7 @@ float ASCharacter::GetAimSlowdownMultiplyer()
 
 void ASCharacter::BeginCrouch()
 {
-	if (State > STATE_NoSpecialMovement)
+	if (State == STATE_Normal || State == STATE_Reloading)
 	{
 		Crouch();
 	}
@@ -119,12 +121,11 @@ void ASCharacter::EndCrouch()
 
 void ASCharacter::BeginJump()
 {
-	if (State > STATE_NoSpecialMovement) 
+	if (State == STATE_Normal || State == STATE_Reloading)
 	{
 		JumpKeyHoldTime = 0.1;
 		Jump();
 	}
-
 }
 
 void ASCharacter::BeginZoom()
@@ -169,7 +170,7 @@ bool ASCharacter::ServerEndZoom_Validate()
 
 void ASCharacter::BeginFire()
 {
-	if (CurrentWeapon && State > STATE_NoShoot)
+	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline))
 	{
 		CurrentWeapon->StartFire();
 	}
@@ -188,11 +189,12 @@ void ASCharacter::BeginReload()
 	if (CurrentWeapon) 
 	{
 		CurrentWeapon->Reload();
-		SetCharacterState(STATE_NoShoot, 1.0f);
+		StopFire();
+		SetCharacterState(STATE_Reloading, 1.0f);
 	}
 }
 
-void ASCharacter::BeginPickup()
+void ASCharacter::TryPickup()
 {
 	//Check on the client first if there is an overlapping weapon
 	//will be checked again on server if this is the client
@@ -252,6 +254,19 @@ void ASCharacter::BeginDrop()
 	}
 }
 
+void ASCharacter::BeginInteract()
+{
+	if (State == STATE_Zipline) 
+	{
+		EndZiplineUse();
+	}
+	else 
+	{
+		TryPickup();
+	}
+
+}
+
 void ASCharacter::ServerTryDrop_Implementation()
 {
 	UnequipWeapon();
@@ -275,6 +290,18 @@ void ASCharacter::EquipWeapon(ASWeapon * NewWeapon)
 		NewWeapon->GetEquippedBy(this);
 		NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);	
 	}
+}
+
+void ASCharacter::TryUseZipline()
+{
+	//search for zipline
+	//find zipline Direction
+	//go in zipline direction untill ends or cancelled
+}
+
+void ASCharacter::EndZiplineUse()
+{
+	SetCharacterState(STATE_Normal);
 }
 
 ASWeapon* ASCharacter::UnequipWeapon()
@@ -395,11 +422,11 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASCharacter::BeginFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASCharacter::StopFire);
 
-	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &ASCharacter::BeginPickup);
-
 	PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &ASCharacter::BeginDrop);
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASCharacter::BeginReload);
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ASCharacter::BeginInteract);
 
 }
 
@@ -413,11 +440,12 @@ FVector ASCharacter::GetPawnViewLocation() const
 	return Super::GetPawnViewLocation();
 }
 
-void ASCharacter::SetCharacterState(CharacterState NewState, float Duration)
+void ASCharacter::SetCharacterState(ECharacterState NewState, float Duration)
 {
 	PreviousState = State;
 	State = NewState;
-	UE_LOG(LogTemp, Log, TEXT("State changed"));
+
+	UE_LOG(LogTemp, Log, TEXT( "%s changed state to %s"), *GetPlayerState()->GetPlayerName(), *GETENUMSTRING("ECharacterState", State));
 
 	if (Duration > 0)
 	{
@@ -429,13 +457,9 @@ void ASCharacter::SetCharacterState(CharacterState NewState, float Duration)
 
 }
 
-
 void ASCharacter::SetStateToPrevious()
 {
-	CharacterState OldState = State;
-	State = PreviousState;
-	PreviousState = OldState;
-	UE_LOG(LogTemp, Log, TEXT("State returned to previous"));
+	SetCharacterState(PreviousState);
 }
 
 

@@ -12,19 +12,16 @@ class ASWeapon;
 class USHealthComponent;
 class USphereComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
+
 
 UENUM()
-enum CharacterState
+enum ECharacterState
 {
-	STATE_NoControl = 0,
-	STATE_NoMovement = 2,
-	STATE_NoSpecialMovement = 3,
-	STATE_NoShoot = 5,
-
-	STATE_FullControl = 10
+	STATE_Normal,
+	STATE_Reloading,
+	STATE_Zipline
 };
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
 
 UCLASS()
 class COOPLEARNING_API ASCharacter : public ACharacter
@@ -65,11 +62,17 @@ protected:
 
 	void BeginReload();
 
-	void BeginPickup();
+	void TryPickup();
 
 	void BeginDrop();
 
+	void BeginInteract();
+
 	void EquipWeapon(ASWeapon* weapon);
+
+	void TryUseZipline();
+
+	void EndZiplineUse();
 
 	ASWeapon* UnequipWeapon();
 
@@ -131,9 +134,9 @@ protected:
 	ASWeapon* GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors);
 
 	UPROPERTY(BlueprintReadOnly, Category = "Play")
-	TEnumAsByte<CharacterState> State;
+	TEnumAsByte<ECharacterState> State;
 
-	TEnumAsByte<CharacterState> PreviousState;
+	TEnumAsByte<ECharacterState> PreviousState;
 
 	FTimerHandle TimerHandle_StateSet;
 
@@ -152,6 +155,6 @@ public:
 	FOnDeathSignature OnDeath;
 
 	UFUNCTION(BlueprintCallable)
-	void SetCharacterState(CharacterState NewState, float Duration = -1);
+	void SetCharacterState(ECharacterState NewState, float Duration = -1);
 
 };

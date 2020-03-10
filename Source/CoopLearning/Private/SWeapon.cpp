@@ -234,8 +234,6 @@ void ASWeapon::Reload()
 		return;
 	}
 
-	StopFire();
-
 	CurrentMagazineCount -= 1;
 	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
 
