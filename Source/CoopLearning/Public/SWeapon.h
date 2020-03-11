@@ -12,7 +12,7 @@ class UDamageType;
 class UParticleSystem;
 class UCameraShake;
 class USoundCue;
-
+class UDataTable;
 
 USTRUCT(BlueprintType)
 struct FWeaponData : public FTableRowBase
@@ -105,6 +105,10 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	UDataTable* WeaponsDataTable;
+
+	UDataTable* WeaponsSoundDataTable;
 
 	FWeaponData* WeaponsData;
 
