@@ -179,7 +179,7 @@ void ASCharacter::StopFire()
 
 void ASCharacter::BeginReload()
 {
-	if (CurrentWeapon) 
+	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline))
 	{
 		CurrentWeapon->Reload();
 		StopFire();
@@ -438,13 +438,12 @@ void ASCharacter::Tick(float DeltaTime)
 		if (CurrentZipline)
 		{
 			FVector Dir = CurrentZipline->GetDirection(ZiplineDirectionIsForward);
-			UE_LOG(LogTemp, Log, TEXT("DIR is %s"), *Dir.ToString());
 			//AddMovementInput(Dir, ZiplineSpeed, true);
 			GetMovementComponent()->Velocity = Dir * ZiplineSpeed;
 
 			if (Role >= ROLE_Authority) 
 			{
-				if (CurrentZipline->DestinationReached(GetActorLocation(), ZiplineDirectionIsForward,300))
+				if (CurrentZipline->DestinationReached(GetActorLocation(), ZiplineDirectionIsForward,200))
 				{
 					UE_LOG(LogTemp, Log, TEXT("Ending Zipline because Target reached"));
 					EndZiplineUse();

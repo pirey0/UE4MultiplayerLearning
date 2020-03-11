@@ -10,6 +10,7 @@ class UCapsuleComponent;
 class USplineComponent;
 class UArrowComponent;
 class ACharacter;
+class UCableComponent;
 
 UCLASS()
 class COOPLEARNING_API ASZipline : public AActor
@@ -38,6 +39,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* EndComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UCableComponent* CableComp;
 
 	void ConstructCollider();
 
