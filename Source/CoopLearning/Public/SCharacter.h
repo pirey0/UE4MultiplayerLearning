@@ -21,6 +21,7 @@ enum ECharacterState
 {
 	STATE_Normal,
 	STATE_Reloading,
+	STATE_Melee,
 	STATE_Zipline
 };
 
@@ -68,6 +69,8 @@ protected:
 	void BeginDrop();
 
 	void BeginInteract();
+
+	void BeginMelee();
 
 	void EquipWeapon(ASWeapon* weapon);
 
@@ -154,6 +157,22 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerTryInteract();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerBeginMelee();
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	float DefaultMeleeDistance;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	float DefaultMeleeDamage;
+
+	float MeleeDistance;
+
+	float MeleeDamage;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	TSubclassOf<UDamageType> MeleeDamageType;
 
 public:	
 	// Called every frame

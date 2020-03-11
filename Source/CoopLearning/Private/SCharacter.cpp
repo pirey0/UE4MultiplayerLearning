@@ -19,6 +19,7 @@
 #include "GameFramework/PlayerState.h"
 #include "SZipline.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -45,6 +46,10 @@ ASCharacter::ASCharacter()
 	ZoomInterpSpeed = 40;
 
 	WeaponAttachSocketName = "WeaponSocket";
+	
+	DefaultMeleeDistance = 100;
+
+	DefaultMeleeDamage = 50;
 
 	State = STATE_Normal;
 }
@@ -55,10 +60,14 @@ void ASCharacter::BeginPlay()
 
 	DefaultFOV = CameraComp->FieldOfView;
 
-	HealthComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHeathChanged);
-
 	if (Role == ROLE_Authority)
 	{
+		MeleeDistance = DefaultMeleeDistance;
+
+		MeleeDamage = DefaultMeleeDamage;
+
+		HealthComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHeathChanged);
+
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
@@ -69,7 +78,7 @@ void ASCharacter::BeginPlay()
 
 void ASCharacter::MoveForward(float Value)
 {
-	if (State == STATE_Normal || State == STATE_Reloading)
+	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Melee)
 	{
 		AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer());
 	}
@@ -77,7 +86,7 @@ void ASCharacter::MoveForward(float Value)
 
 void ASCharacter::MoveRight(float Value)
 {
-	if (State == STATE_Normal || State == STATE_Reloading)
+	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Melee)
 	{
 		AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer());
 	}
@@ -267,6 +276,41 @@ void ASCharacter::BeginInteract()
 
 }
 
+void ASCharacter::BeginMelee()
+{
+	if (Role < ROLE_Authority) 
+	{
+		ServerBeginMelee();
+		return;
+	}
+
+	if (State == STATE_Normal) 
+	{
+		UE_LOG(LogTemp, Log, TEXT("Begin Melee"));
+		SetCharacterState(STATE_Melee, 1.0f);
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		FHitResult Hit;
+
+		FVector TraceStart;
+		FRotator EyeRotation;
+		GetActorEyesViewPoint(TraceStart, EyeRotation);
+
+		FVector HandPosition = GetMesh()->GetSocketLocation(WeaponAttachSocketName);
+		FVector EndPosition = HandPosition + EyeRotation.Vector() * MeleeDistance;
+
+		if (GetWorld()->LineTraceSingleByChannel(Hit, HandPosition, EndPosition, COLLISION_WEAPON, QueryParams))
+		{
+			AActor* HitActor = Hit.GetActor();
+			UE_LOG(LogTemp, Log, TEXT("Melee Hit %s"), *HitActor->GetName());
+			UGameplayStatics::ApplyPointDamage(HitActor, MeleeDamage, EyeRotation.Vector(), Hit, GetInstigatorController(), this, MeleeDamageType);
+		}
+	}
+
+}
+
 void ASCharacter::ServerTryDrop_Implementation()
 {
 	UnequipWeapon();
@@ -297,8 +341,6 @@ void ASCharacter::TryUseZipline()
 	TArray<AActor*> ZiplinesInArea;
 	GetOverlappingActors(ZiplinesInArea, TSubclassOf<ASZipline>());
 
-	UE_LOG(LogTemp, Log, TEXT("SEARCHING FOR ZIPLINE"));
-
 	if (ZiplinesInArea.Num() > 0) 
 	{
 		CurrentZipline = Cast<ASZipline>(ZiplinesInArea[0]);
@@ -318,9 +360,6 @@ void ASCharacter::TryUseZipline()
 			Cast<UCharacterMovementComponent>(GetMovementComponent())->SetMovementMode(EMovementMode::MOVE_Flying);		
 		}
 	}
-
-	
-	//go in zipline direction untill ends or cancelled
 }
 
 void ASCharacter::EndZiplineUse()
@@ -415,6 +454,16 @@ bool ASCharacter::ServerTryInteract_Validate()
 	return true;
 }
 
+void ASCharacter::ServerBeginMelee_Implementation()
+{
+	BeginMelee();
+}
+
+bool ASCharacter::ServerBeginMelee_Validate()
+{
+	return true;
+}
+
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)
 {
@@ -489,6 +538,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASCharacter::BeginReload);
 
 	PlayerInputComponent->BindAction("Interaction", IE_Pressed, this, &ASCharacter::BeginInteract);
+
+	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &ASCharacter::BeginMelee);
 
 }
 

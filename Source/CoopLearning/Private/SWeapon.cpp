@@ -135,7 +135,6 @@ void ASWeapon::Fire()
 			return;
 		}
 
-
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
 		QueryParams.AddIgnoredActor(this);
