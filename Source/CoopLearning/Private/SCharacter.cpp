@@ -85,20 +85,12 @@ void ASCharacter::MoveRight(float Value)
 
 void ASCharacter::MoveCameraYaw(float Value)
 {
-	if (State == STATE_Normal || State == STATE_Reloading)
-	{
 		AddControllerYawInput(Value);
-	}
-
 }
 
 void ASCharacter::MoveCameraPitch(float Value)
 {
-	if (State == STATE_Normal || State == STATE_Reloading)
-	{
-		AddControllerPitchInput(Value);
-	}
-
+	AddControllerPitchInput(Value);
 }
 
 float ASCharacter::GetAimSlowdownMultiplyer()
@@ -257,6 +249,12 @@ void ASCharacter::BeginDrop()
 
 void ASCharacter::BeginInteract()
 {
+	if (Role < ROLE_Authority) 
+	{
+		ServerTryInteract();
+		return;
+	}
+
 	if (State == STATE_Zipline) 
 	{
 		EndZiplineUse();
@@ -296,13 +294,6 @@ void ASCharacter::EquipWeapon(ASWeapon * NewWeapon)
 
 void ASCharacter::TryUseZipline()
 {
-
-	if (Role < ROLE_Authority)
-	{
-		ServerTryUseZipline();
-		return;
-	}
-
 	TArray<AActor*> ZiplinesInArea;
 	GetOverlappingActors(ZiplinesInArea, TSubclassOf<ASZipline>());
 
@@ -314,8 +305,14 @@ void ASCharacter::TryUseZipline()
 
 		if (CurrentZipline) 
 		{
-			ZiplineDirectionIsForward = CurrentZipline->GetDirectionIsForward(GetActorForwardVector());
 
+			FVector EyesLocation;
+			FRotator EyesRotation;
+
+			GetActorEyesViewPoint(EyesLocation, EyesRotation);
+			
+			ZiplineDirectionIsForward = CurrentZipline->GetDirectionIsForward(EyesRotation.Vector());
+			UE_LOG(LogTemp, Log, TEXT("New Direction is %s"), (ZiplineDirectionIsForward ? TEXT("True") : TEXT("False")))
 			SetCharacterState(STATE_Zipline);
 
 			Cast<UCharacterMovementComponent>(GetMovementComponent())->SetMovementMode(EMovementMode::MOVE_Flying);		
@@ -408,12 +405,12 @@ ASWeapon* ASCharacter::GetClosestWeapon(FVector sourceLocation, TArray<AActor*> 
 	return closestActor;
 }
 
-void ASCharacter::ServerTryUseZipline_Implementation()
+void ASCharacter::ServerTryInteract_Implementation()
 {
-	TryUseZipline();
+	BeginInteract();
 }
 
-bool ASCharacter::ServerTryUseZipline_Validate()
+bool ASCharacter::ServerTryInteract_Validate()
 {
 	return true;
 }
@@ -434,28 +431,35 @@ void ASCharacter::Tick(float DeltaTime)
 
 		AimProgress = 1 - ((NewFOV - ZoomedFOV) / (DefaultFOV - ZoomedFOV));
 
+	}
 
-		if (State == STATE_Zipline) 
+	if (Role >= ROLE_AutonomousProxy && State == STATE_Zipline)
+	{
+		if (CurrentZipline)
 		{
-			if (CurrentZipline)
-			{
-				AddMovementInput(CurrentZipline->GetDirection(ZiplineDirectionIsForward) * 1000);
+			FVector Dir = CurrentZipline->GetDirection(ZiplineDirectionIsForward);
+			UE_LOG(LogTemp, Log, TEXT("DIR is %s"), *Dir.ToString());
+			//AddMovementInput(Dir, ZiplineSpeed, true);
+			GetMovementComponent()->Velocity = Dir * ZiplineSpeed;
 
-				if (CurrentZipline->DestinationReached(this, ZiplineDirectionIsForward)) 
+			if (Role >= ROLE_Authority) 
+			{
+				if (CurrentZipline->DestinationReached(GetActorLocation(), ZiplineDirectionIsForward,300))
 				{
+					UE_LOG(LogTemp, Log, TEXT("Ending Zipline because Target reached"));
 					EndZiplineUse();
 				}
 			}
-			else 
+		}
+		else
+		{
+			if (Role >= ROLE_Authority)
 			{
+				UE_LOG(LogTemp, Log, TEXT("Ending Zipline because no Zipline is assigned"));
 				EndZiplineUse();
 			}
 		}
-
 	}
-
-
-
 }
 
 // Called to bind functionality to input
@@ -530,4 +534,6 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, bDied);
 	DOREPLIFETIME(ASCharacter, AimProgress);
 	DOREPLIFETIME(ASCharacter, State);
+	DOREPLIFETIME(ASCharacter, CurrentZipline);
+	DOREPLIFETIME(ASCharacter, ZiplineDirectionIsForward);
 }

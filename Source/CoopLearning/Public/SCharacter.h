@@ -134,7 +134,7 @@ protected:
 
 	ASWeapon* GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors);
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Play")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	TEnumAsByte<ECharacterState> State;
 
 	TEnumAsByte<ECharacterState> PreviousState;
@@ -143,12 +143,17 @@ protected:
 
 	void SetStateToPrevious();
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	ASZipline* CurrentZipline;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool ZiplineDirectionIsForward;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float ZiplineSpeed;
+
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerTryUseZipline();
+	void ServerTryInteract();
 
 public:	
 	// Called every frame
