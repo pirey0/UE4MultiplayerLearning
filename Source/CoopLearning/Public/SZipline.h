@@ -33,7 +33,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USplineComponent* SplineComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USceneComponent* StartComp;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USceneComponent* EndComp;
+
 	void ConstructCollider();
+
+	void ConstructSpline();
+
+	void SetupArrowComp();
 
 public:
 
@@ -43,5 +53,5 @@ public:
 
 	FVector GetTargetLocation(bool DirectionIsForward);
 
-	bool DestinationReached(APawn* Target, bool DirectionIsForward, float ReachedDistance = 100);
+	bool DestinationReached(FVector Target, bool DirectionIsForward, float ReachedDistance = 100);
 };

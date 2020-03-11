@@ -4,22 +4,34 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SplineComponent.h"
+#include "Components/SceneComponent.h"
+#include "DrawDebugHelpers.h"
 
 ASZipline::ASZipline()
 {
+	StartComp = CreateDefaultSubobject<USceneComponent>(TEXT("StartComp"));
+	SetRootComponent(StartComp);
+
 	ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComp"));
-	RootComponent = ArrowComp;
+	ArrowComp->SetupAttachment(StartComp);
 
 	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComp"));
+	CapsuleComp->SetupAttachment(StartComp);
 
 	SplineComp = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComp"));
+	SplineComp->SetupAttachment(StartComp);
 
+	EndComp = CreateDefaultSubobject<USceneComponent>(TEXT("EndComp"));
+	EndComp->SetupAttachment(StartComp);
 }
 
 
 void ASZipline::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetupArrowComp();
+	ConstructSpline();
 	ConstructCollider();
 }
 
@@ -33,7 +45,7 @@ void ASZipline::ConstructCollider()
 	FTransform TempT = SplineComp->GetTransformAtDistanceAlongSpline(HalfLength, ESplineCoordinateSpace::World);
 
 	FRotator NewRot = TempT.GetRotation().Rotator();
-	NewRot.Yaw += 90;
+	NewRot.Pitch += 90;
 
 	TempT.SetRotation(NewRot.Quaternion());
 	CapsuleComp->SetWorldTransform(TempT);
@@ -41,11 +53,27 @@ void ASZipline::ConstructCollider()
 
 }
 
+void ASZipline::ConstructSpline()
+{
+	FOccluderVertexArray Positions = FOccluderVertexArray();
+	Positions.Add(FVector::ZeroVector);
+	Positions.Add(EndComp->RelativeLocation);
+
+	SplineComp->SetSplinePoints(Positions, ESplineCoordinateSpace::Type::Local, true);
+}
+
+void ASZipline::SetupArrowComp()
+{
+	ArrowComp->SetWorldRotation(EndComp->RelativeLocation.ToOrientationQuat());
+}
+
 bool ASZipline::GetDirectionIsForward(FVector TargetForward)
 {
 	FVector Forward = ArrowComp->GetForwardVector();
 
-	if (FVector::DotProduct(Forward, TargetForward) > 0) 
+	float DP = FVector::DotProduct(Forward, TargetForward);
+
+	if (DP > 0) 
 	{
 		return true;
 	}
@@ -64,7 +92,7 @@ FVector ASZipline::GetDirection(bool DirectionIsForward)
 	}
 	else 
 	{
-		return -ArrowComp->GetForwardVector();
+		return (-ArrowComp->GetForwardVector());
 	}
 }
 
@@ -80,13 +108,10 @@ FVector ASZipline::GetTargetLocation(bool DirectionIsForward)
 	}
 }
 
-bool ASZipline::DestinationReached(APawn * Target, bool DirectionIsForward, float ReachedDistance)
+bool ASZipline::DestinationReached(FVector Target, bool DirectionIsForward, float ReachedDistance)
 {
-	if (Target) 
-	{
-		return FVector::Distance(Target->GetActorLocation(), GetTargetLocation(DirectionIsForward)) < ReachedDistance;
-	}
-
-	return false;
+	float Distance = FVector::Distance(Target, GetTargetLocation(DirectionIsForward)) < ReachedDistance;
+	UE_LOG(LogTemp, Log, TEXT("Distance to destination: %f"), Distance);
+	return Distance;
 }
 
