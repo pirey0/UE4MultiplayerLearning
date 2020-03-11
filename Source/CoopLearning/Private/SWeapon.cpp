@@ -236,9 +236,13 @@ void ASWeapon::Reload()
 	CurrentMagazineCount -= 1;
 	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
 
-	//Play reload animation;
-	//Dont allow shooting while reloading
 
+	//To Play reload sound we need to multicast
+	//if (WeaponsSoundData->Reload)
+	//{
+	//	UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Reload, MeshComp->GetSocketLocation(CenterSocketName));
+	//}
+	
 }
 
 
