@@ -6,6 +6,7 @@
 #include "Components/SplineComponent.h"
 #include "Components/SceneComponent.h"
 #include "DrawDebugHelpers.h"
+#include "CableComponent.h"
 
 ASZipline::ASZipline()
 {
@@ -23,6 +24,10 @@ ASZipline::ASZipline()
 
 	EndComp = CreateDefaultSubobject<USceneComponent>(TEXT("EndComp"));
 	EndComp->SetupAttachment(StartComp);
+
+	CableComp = CreateDefaultSubobject<UCableComponent>(TEXT("CableComp"));
+	CableComp->SetupAttachment(StartComp);
+	CableComp->SetAttachEndToComponent(EndComp);
 }
 
 
@@ -60,6 +65,8 @@ void ASZipline::ConstructSpline()
 	Positions.Add(EndComp->RelativeLocation);
 
 	SplineComp->SetSplinePoints(Positions, ESplineCoordinateSpace::Type::Local, true);
+
+	CableComp->SetAttachEndToComponent(EndComp);
 }
 
 void ASZipline::SetupArrowComp()
@@ -100,18 +107,18 @@ FVector ASZipline::GetTargetLocation(bool DirectionIsForward)
 {
 	if (DirectionIsForward)
 	{
-		return SplineComp->GetLocationAtSplinePoint(0,ESplineCoordinateSpace::World);
+		return SplineComp->GetLocationAtSplinePoint(1,ESplineCoordinateSpace::World);
 	}
 	else
 	{
-		return SplineComp->GetLocationAtSplinePoint(1, ESplineCoordinateSpace::World);
+		return SplineComp->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
 	}
 }
 
 bool ASZipline::DestinationReached(FVector Target, bool DirectionIsForward, float ReachedDistance)
 {
-	float Distance = FVector::Distance(Target, GetTargetLocation(DirectionIsForward)) < ReachedDistance;
-	UE_LOG(LogTemp, Log, TEXT("Distance to destination: %f"), Distance);
-	return Distance;
+	float Distance = FVector::Distance(Target, GetTargetLocation(DirectionIsForward));
+	//UE_LOG(LogTemp, Log, TEXT("Distance to destination: %f"), Distance);
+	return Distance < ReachedDistance;
 }
 

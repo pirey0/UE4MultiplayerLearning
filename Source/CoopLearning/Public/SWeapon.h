@@ -12,7 +12,7 @@ class UDamageType;
 class UParticleSystem;
 class UCameraShake;
 class USoundCue;
-
+class UDataTable;
 
 USTRUCT(BlueprintType)
 struct FWeaponData : public FTableRowBase
@@ -44,6 +44,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxSpreadInDegrees;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HeadshotMultiplyer;
 
 };
 
@@ -105,6 +108,10 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	UDataTable* WeaponsDataTable;
+
+	UDataTable* WeaponsSoundDataTable;
 
 	FWeaponData* WeaponsData;
 
@@ -184,6 +191,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float SpeedEqualToMaxSpread;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastReloadSound();
 
 public:
 	void StartFire();

@@ -41,16 +41,17 @@ ASWeapon::ASWeapon()
 
 	WeaponsDataName = FName(TEXT("Rifle"));
 
+
 	static ConstructorHelpers::FObjectFinder<UDataTable> WeaponsDataTableObject(TEXT("DataTable'/Game/Core/DT_Weapons.DT_Weapons'"));
 	if (WeaponsDataTableObject.Succeeded())
 	{
-		WeaponsData = WeaponsDataTableObject.Object->FindRow<FWeaponData>(WeaponsDataName, "Rifle",true);
+		WeaponsDataTable = WeaponsDataTableObject.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> WeaponsSoundDataTableObject(TEXT("DataTable'/Game/Core/DT_WeaponsSounds.DT_WeaponsSounds'"));
 	if (WeaponsSoundDataTableObject.Succeeded())
 	{
-		WeaponsSoundData = WeaponsSoundDataTableObject.Object->FindRow<FWeaponSoundData>(WeaponsDataName, "Rifle", true);
+		WeaponsSoundDataTable = WeaponsSoundDataTableObject.Object;
 	}
 
 }
@@ -59,12 +60,24 @@ void ASWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
+	WeaponsData = WeaponsDataTable->FindRow<FWeaponData>(WeaponsDataName, "Weapon", true);
+
+	WeaponsSoundData = WeaponsSoundDataTable->FindRow<FWeaponSoundData>(WeaponsDataName, "Weapon", true);
+
 	TimeBetweenShots = 60 / WeaponsData->RateOfFire;
 
 	if (Role >= ROLE_Authority)
 	{
 		CurrentBulletCount = WeaponsData->BulletsPerMagazine;
 		CurrentMagazineCount = WeaponsData->DefaultMagazineCount;
+	}
+}
+
+void ASWeapon::MulticastReloadSound_Implementation()
+{
+	if (WeaponsSoundData->Reload)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Reload, MeshComp->GetSocketLocation(CenterSocketName));
 	}
 }
 
@@ -127,14 +140,10 @@ void ASWeapon::Fire()
 
 		if (CurrentBulletCount <= 0)
 		{
-			//Out of ammo
-			// Force Reload?
-			//Play no ammo sound
 			MulticastData.NoShot = true;
 			MultiCastFire(MulticastData);
 			return;
 		}
-
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(MyOwner);
@@ -189,7 +198,7 @@ void ASWeapon::Fire()
 
 			if (SurfaceType == SURFACE_FLESHVULNERABLE)
 			{
-				ActualDamage *= 2.5f;
+				ActualDamage *= WeaponsData->HeadshotMultiplyer;
 			}
 
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData->DamageType);
@@ -237,9 +246,7 @@ void ASWeapon::Reload()
 	CurrentMagazineCount -= 1;
 	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
 
-	//Play reload animation;
-	//Dont allow shooting while reloading
-
+	MulticastReloadSound();	
 }
 
 
@@ -327,11 +334,12 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 	switch (SurfaceType)
 	{
 	case SURFACE_FLESHDEFAULT:
-		SelectedEffect = FleshVulnerableImpactEffect;
+		SelectedEffect = FleshImpactEffect;
 		break;
 
 	case SURFACE_FLESHVULNERABLE:
-		SelectedEffect = FleshImpactEffect;
+		SelectedEffect = FleshVulnerableImpactEffect;
+
 		break;
 
 	default:
