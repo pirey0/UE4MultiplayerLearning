@@ -190,7 +190,7 @@ void ASWeapon::Fire()
 
 			if (SurfaceType == SURFACE_FLESHVULNERABLE)
 			{
-				ActualDamage *= 2.5f;
+				ActualDamage *= WeaponsData->HeadshotMultiplyer;
 			}
 
 			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData->DamageType);
@@ -332,11 +332,11 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 	switch (SurfaceType)
 	{
 	case SURFACE_FLESHDEFAULT:
-		SelectedEffect = FleshVulnerableImpactEffect;
+		SelectedEffect = FleshImpactEffect;
 		break;
 
 	case SURFACE_FLESHVULNERABLE:
-		SelectedEffect = FleshImpactEffect;
+		SelectedEffect = FleshVulnerableImpactEffect;
 
 		break;
 

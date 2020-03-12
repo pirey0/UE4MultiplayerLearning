@@ -45,6 +45,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxSpreadInDegrees;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HeadshotMultiplyer;
+
 };
 
 USTRUCT(BlueprintType)
