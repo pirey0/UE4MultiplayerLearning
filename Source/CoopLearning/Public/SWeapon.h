@@ -192,6 +192,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	float SpeedEqualToMaxSpread;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastReloadSound();
+
 public:
 	void StartFire();
 

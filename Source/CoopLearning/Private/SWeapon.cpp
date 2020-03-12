@@ -73,6 +73,14 @@ void ASWeapon::BeginPlay()
 	}
 }
 
+void ASWeapon::MulticastReloadSound_Implementation()
+{
+	if (WeaponsSoundData->Reload)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Reload, MeshComp->GetSocketLocation(CenterSocketName));
+	}
+}
+
 void ASWeapon::StartFire()
 {
 	float FirstDelay = FMath::Max(LastFireTimeStamp + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
@@ -238,13 +246,7 @@ void ASWeapon::Reload()
 	CurrentMagazineCount -= 1;
 	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
 
-
-	//To Play reload sound we need to multicast
-	//if (WeaponsSoundData->Reload)
-	//{
-	//	UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Reload, MeshComp->GetSocketLocation(CenterSocketName));
-	//}
-	
+	MulticastReloadSound();	
 }
 
 
