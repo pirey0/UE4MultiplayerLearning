@@ -186,6 +186,11 @@ void ASCharacter::StopFire()
 	}
 }
 
+USHealthComponent* ASCharacter::GetHealthComponent()
+{
+	return HealthComp;
+}
+
 void ASCharacter::BeginReload()
 {
 	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline))

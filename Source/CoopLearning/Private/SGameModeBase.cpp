@@ -72,10 +72,20 @@ void ASGameModeBase::OnPlayerCharacterDeath(ASCharacter * Character, AController
 	ASPlayerState* DierState = Cast<ASPlayerState>(Character->GetPlayerState());
 	ASPlayerState* InstigatorState = Cast<ASPlayerState>(InstigatedBy->PlayerState);
 
-	DierState->AddDeath();
-	InstigatorState->AddKill();
+	if (DierState) 
+	{
+		DierState->AddDeath();
+	}
 
-	UE_LOG(LogTemp, Log, TEXT("%s killed %s"), *DierState->GetPlayerName(), *InstigatorState->GetPlayerName());
+	if (InstigatorState) 
+	{
+		InstigatorState->AddKill();
+	}
+
+	if (DierState && InstigatorState) 
+	{
+		UE_LOG(LogTemp, Log, TEXT("%s killed %s"), *DierState->GetPlayerName(), *InstigatorState->GetPlayerName());
+	}
 
 	CheckForGameEnd();
 }

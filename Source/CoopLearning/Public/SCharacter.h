@@ -58,10 +58,6 @@ protected:
 
 	void EndZoom();
 
-	void BeginFire();
-
-	void StopFire();
-
 	void BeginReload();
 
 	void TryPickup();
@@ -188,5 +184,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterState(ECharacterState NewState, float Duration = -1);
+
+	UFUNCTION(BlueprintCallable, Category = "Player")
+		void BeginFire();
+
+	UFUNCTION(BlueprintCallable, Category = "Player")
+		void StopFire();
+
+	USHealthComponent* GetHealthComponent();
 
 };
