@@ -13,6 +13,7 @@ class UParticleSystem;
 class UCameraShake;
 class USoundCue;
 class UDataTable;
+class USoundAttenuation;
 
 USTRUCT(BlueprintType)
 struct FWeaponData : public FTableRowBase
@@ -194,6 +195,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastReloadSound();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	USoundAttenuation* SoundAttenuation;
 
 public:
 	void StartFire();

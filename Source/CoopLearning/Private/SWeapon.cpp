@@ -77,7 +77,7 @@ void ASWeapon::MulticastReloadSound_Implementation()
 {
 	if (WeaponsSoundData->Reload)
 	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Reload, MeshComp->GetSocketLocation(CenterSocketName));
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Reload, MeshComp->GetSocketLocation(CenterSocketName), 1, 1, 0, SoundAttenuation);
 	}
 }
 
@@ -266,7 +266,7 @@ void ASWeapon::MultiCastFire_Implementation(FMulticastShotData MulticastData)
 	{
 		if (WeaponsSoundData->NoAmmo)
 		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->NoAmmo, MeshComp->GetSocketLocation(MuzzleSocketName));
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->NoAmmo, MeshComp->GetSocketLocation(MuzzleSocketName),1, 1, 0, SoundAttenuation);
 		}
 	}
 	else 
@@ -323,7 +323,7 @@ void ASWeapon::PlayFireEffects(FVector TracerEndPoint)
 
 	if (WeaponsSoundData->Shot)
 	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Shot, MeshComp->GetSocketLocation(MuzzleSocketName));
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), WeaponsSoundData->Shot, MeshComp->GetSocketLocation(MuzzleSocketName), 1, 1, 0, SoundAttenuation);
 	}
 }
 
