@@ -165,7 +165,7 @@ void ASWeapon::Fire()
 			}
 			return;
 		}
-
+		
 		FVector TraceStart;
 		FRotator EyeRotation;
 		MyOwner->GetActorEyesViewPoint(TraceStart, EyeRotation);

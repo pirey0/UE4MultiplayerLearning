@@ -7,6 +7,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "PhysicsEngine/RadialForceComponent.h"
+#include "Sound/SoundAttenuation.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ASExplosiveBarrel::ASExplosiveBarrel()
@@ -43,6 +45,17 @@ void ASExplosiveBarrel::OnHeathChanged(USHealthComponent * SourceHealthComp, flo
 	if (Health <= 0)
 	{
 		bExploded = true;
+
+
+		FVector BoostIntensity = FVector::UpVector * ExplosionImpulse;
+
+		TArray<AActor*> IgnoredActors;
+		IgnoredActors.Add(this);
+
+		UGameplayStatics::ApplyRadialDamage(GetWorld(), ExplosionDamage, GetActorLocation(), RadialForceComp->Radius, ExplosionDamageType, IgnoredActors, DamageCauser, InstigatedBy, true);
+
+		MeshComp->AddImpulse(BoostIntensity, NAME_None, true);
+		RadialForceComp->FireImpulse();
 		MulticastExplode();
 	}
 }
@@ -55,13 +68,14 @@ void ASExplosiveBarrel::MulticastExplode_Implementation()
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation(), FRotator::ZeroRotator);
 	}
+
 	if (MeshComp)
 	{
 		MeshComp->SetMaterial(0, ExplodedMaterial);
 	}
 
-	FVector BoostIntensity = FVector::UpVector * ExplosionImpulse;
-	MeshComp->AddImpulse(BoostIntensity, NAME_None, true);
-
-	RadialForceComp->FireImpulse();
+	if (ExplosionSound) 
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation(), 1, 1, 0, SoundAttenuation);
+	}
 }

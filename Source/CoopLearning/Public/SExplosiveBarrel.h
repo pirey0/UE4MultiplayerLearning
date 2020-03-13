@@ -9,6 +9,8 @@
 class USHealthComponent;
 class UStaticMeshComponent;
 class URadialForceComponent;
+class USoundCue;
+class USoundAttenuation;
 
 UCLASS()
 class COOPLEARNING_API ASExplosiveBarrel : public AActor
@@ -38,6 +40,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ExplosiveBarrel")
 	float ExplosionImpulse;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ExplosiveBarrel")
+	float ExplosionDamage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ExplosiveBarrel")
+	TSubclassOf<UDamageType> ExplosionDamageType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ExplosiveBarrel")
+	USoundCue* ExplosionSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ExplosiveBarrel")
+	USoundAttenuation* SoundAttenuation;
 
 	bool bExploded;
 
