@@ -60,16 +60,16 @@ void ASWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	WeaponsData = WeaponsDataTable->FindRow<FWeaponData>(WeaponsDataName, "Weapon", true);
+	WeaponsData = *WeaponsDataTable->FindRow<FWeaponData>(WeaponsDataName, "Weapon", true);
 
 	WeaponsSoundData = WeaponsSoundDataTable->FindRow<FWeaponSoundData>(WeaponsDataName, "Weapon", true);
 
-	TimeBetweenShots = 60 / WeaponsData->RateOfFire;
+	TimeBetweenShots = 60 / WeaponsData.RateOfFire;
 
 	if (Role >= ROLE_Authority)
 	{
-		CurrentBulletCount = WeaponsData->BulletsPerMagazine;
-		CurrentMagazineCount = WeaponsData->DefaultMagazineCount;
+		CurrentBulletCount = WeaponsData.BulletsPerMagazine;
+		CurrentMagazineCount = WeaponsData.DefaultMagazineCount;
 	}
 }
 
@@ -116,7 +116,7 @@ void ASWeapon::Unequip()
 		MeshComp->SetSimulatePhysics(true);
 		MeshComp->SetPhysicsLinearVelocity(OwnerVelocity);
 		FVector Direction = GetActorRightVector() + FVector::UpVector;
-		MeshComp->AddImpulse(Direction * WeaponsData->ThrowForce);
+		MeshComp->AddImpulse(Direction * WeaponsData.ThrowForce);
 
 		SetLifeSpan(DespawnTime);
 	}
@@ -174,18 +174,18 @@ void ASWeapon::Fire()
 
 		float SpreadMultiplyer = FMath::GetMappedRangeValueClamped(FVector2D(0, SpeedEqualToMaxSpread), FVector2D(0, 1), MyOwner->GetVelocity().Size());
 
-		float SpreadAmount = (WeaponsData->MaxSpreadInDegrees / 360.0f) * SpreadMultiplyer;
+		float SpreadAmount = (WeaponsData.MaxSpreadInDegrees / 360.0f) * SpreadMultiplyer;
 
 		ShotDirection = FMath::VRandCone(ShotDirection, SpreadAmount);
 
-		FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData->HitMaxDistance);
+		FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData.HitMaxDistance);
 
 		FVector TracerEndPoint = TraceEnd;
 
 		//Get where the crosshair is looking so that you can hit close objects
 		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
-			TraceEnd = WeaponMuzzle + (Hit.ImpactPoint - WeaponMuzzle) * WeaponsData->HitMaxDistance;
+			TraceEnd = WeaponMuzzle + (Hit.ImpactPoint - WeaponMuzzle) * WeaponsData.HitMaxDistance;
 		}
 
 		//Get from the Weapon Muzzle to the new TraceEnd
@@ -194,14 +194,14 @@ void ASWeapon::Fire()
 			AActor* HitActor = Hit.GetActor();
 
 			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-			float ActualDamage = WeaponsData->BaseDamage;
+			float ActualDamage = WeaponsData.BaseDamage;
 
 			if (SurfaceType == SURFACE_FLESHVULNERABLE)
 			{
-				ActualDamage *= WeaponsData->HeadshotMultiplyer;
+				ActualDamage *= WeaponsData.HeadshotMultiplyer;
 			}
 
-			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData->DamageType);
+			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData.DamageType);
 
 			TracerEndPoint = Hit.ImpactPoint;
 
@@ -244,7 +244,7 @@ void ASWeapon::Reload()
 	}
 
 	CurrentMagazineCount -= 1;
-	CurrentBulletCount = WeaponsData->BulletsPerMagazine;
+	CurrentBulletCount = WeaponsData.BulletsPerMagazine;
 
 	MulticastReloadSound();	
 }

@@ -49,6 +49,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HeadshotMultiplyer;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName DisplayName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<UTexture2D> DisplayIcon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<UTexture2D> DisplayAmmoIcon;
+
 };
 
 USTRUCT(BlueprintType)
@@ -114,7 +123,8 @@ protected:
 
 	UDataTable* WeaponsSoundDataTable;
 
-	FWeaponData* WeaponsData;
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	FWeaponData WeaponsData;
 
 	FWeaponSoundData* WeaponsSoundData;
 
