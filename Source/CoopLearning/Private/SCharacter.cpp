@@ -219,6 +219,16 @@ USHealthComponent* ASCharacter::GetHealthComponent()
 	return HealthComp;
 }
 
+void ASCharacter::NotifyDamageDealt(float Amount)
+{
+	MulticastNotifyDamageDealt(Amount);
+}
+
+void ASCharacter::MulticastNotifyDamageDealt_Implementation(float Amount)
+{
+	OnDealDamage.Broadcast(this, Amount);
+}
+
 void ASCharacter::BeginReload()
 {
 	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline))
@@ -239,11 +249,6 @@ void ASCharacter::TryPickup()
 		return;
 	}
 
-	TArray<AActor*> ActorsInArea;
-	GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
-
-	ASWeapon* ClosestWeapon = GetClosestWeapon(GetActorLocation(), ActorsInArea);
-
 	if (ClosestWeapon)
 	{
 		if (Role >= ROLE_Authority) 
@@ -259,16 +264,6 @@ void ASCharacter::TryPickup()
 
 void ASCharacter::ServerTryPickup_Implementation()
 {
-	if (CurrentWeapon)
-	{
-		return;
-	}
-
-	TArray<AActor*> ActorsInArea;
-	GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
-
-	ASWeapon* ClosestWeapon = GetClosestWeapon(GetActorLocation(), ActorsInArea);
-
 	if (ClosestWeapon)
 	{
 		EquipWeapon(ClosestWeapon);
@@ -513,6 +508,19 @@ void ASCharacter::Tick(float DeltaTime)
 
 		AimProgress = 1 - ((NewFOV - ZoomedFOV) / (DefaultFOV - ZoomedFOV));
 
+
+		TArray<AActor*> ActorsInArea;
+		GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
+
+		ASWeapon* NewClosestWeapon = GetClosestWeapon(GetActorLocation(), ActorsInArea);
+
+		if (NewClosestWeapon != ClosestWeapon)
+		{
+			ASWeapon* OldWeapon = ClosestWeapon;
+			ClosestWeapon = NewClosestWeapon;
+			OnClosestWeaponChange.Broadcast(this, OldWeapon, ClosestWeapon);
+		}
+
 	}
 
 	if (Role >= ROLE_AutonomousProxy && State == STATE_Zipline)
@@ -541,6 +549,9 @@ void ASCharacter::Tick(float DeltaTime)
 			}
 		}
 	}
+
+
+
 }
 
 // Called to bind functionality to input

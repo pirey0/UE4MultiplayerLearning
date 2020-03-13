@@ -14,7 +14,8 @@ class USphereComponent;
 class ASZipline;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnClosestWeaponChangeSignature, class ASCharacter*, Character, class ASWeapon*, OldClosestWeapon, class ASWeapon*, NewClosestWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDealtDamageSignature, class ASCharacter*, Character, float , Amount);
 
 UENUM()
 enum ECharacterState
@@ -96,6 +97,9 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	ASWeapon* CurrentWeapon;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	ASWeapon* ClosestWeapon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<ASWeapon> StarterWeaponClass;
@@ -182,6 +186,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDeathSignature OnDeath;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnClosestWeaponChangeSignature OnClosestWeaponChange;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnDealtDamageSignature OnDealDamage;
+
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterState(ECharacterState NewState, float Duration = -1);
 
@@ -193,4 +203,8 @@ public:
 
 	USHealthComponent* GetHealthComponent();
 
+	void NotifyDamageDealt(float Amount);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastNotifyDamageDealt(float Amount);
 };

@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "SHealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "SCharacter.h"
+#include "GameFramework/Controller.h"
 
 // Sets default values for this component's properties
 USHealthComponent::USHealthComponent()
@@ -37,6 +39,14 @@ void USHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float Damage,
 	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *FString::SanitizeFloat(Health));
 
 	OnHealthChanged.Broadcast(this, Health, Damage, DamageType, InstigatedBy, DamageCauser);
+
+
+	ASCharacter* Character = Cast<ASCharacter>(InstigatedBy->GetPawn());
+
+	if (Character)
+	{
+		Character->NotifyDamageDealt(Damage);
+	}
 }
 
 bool USHealthComponent::IsAlive()
