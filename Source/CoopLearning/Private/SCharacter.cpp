@@ -20,6 +20,8 @@
 #include "SZipline.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "SGameInstance.h"
+#include "SUserSaveGame.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -94,12 +96,38 @@ void ASCharacter::MoveRight(float Value)
 
 void ASCharacter::MoveCameraYaw(float Value)
 {
-		AddControllerYawInput(Value);
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+	float Sensitivity = 1;
+
+	if (GameInstance)
+	{
+		USUserSaveGame* UserSaveGame = GameInstance->GetUserSaveGame();
+
+		if (UserSaveGame)
+		{
+			Sensitivity = UserSaveGame->UserMouseSensitivity;
+		}
+	}
+
+	AddControllerYawInput(Value * Sensitivity);
 }
 
 void ASCharacter::MoveCameraPitch(float Value)
 {
-	AddControllerPitchInput(Value);
+	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
+	float Sensitivity = 1;
+
+	if (GameInstance)
+	{
+		USUserSaveGame* UserSaveGame = GameInstance->GetUserSaveGame();
+
+		if (UserSaveGame)
+		{
+			Sensitivity = UserSaveGame->UserMouseSensitivity;
+		}
+	}
+
+	AddControllerPitchInput(Value * Sensitivity);
 }
 
 float ASCharacter::GetAimSlowdownMultiplyer()
