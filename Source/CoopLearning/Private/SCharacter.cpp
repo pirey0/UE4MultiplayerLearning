@@ -235,7 +235,9 @@ void ASCharacter::BeginReload()
 	{
 		CurrentWeapon->Reload();
 		StopFire();
-		SetCharacterState(STATE_Reloading, 1.0f);
+		float ReloadTime = CurrentWeapon->GetReloadTime();
+		SetCharacterState(STATE_Reloading, ReloadTime);
+		OnReload.Broadcast(this, ReloadTime);
 	}
 }
 

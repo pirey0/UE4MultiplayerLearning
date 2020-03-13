@@ -58,6 +58,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UTexture2D> DisplayAmmoIcon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ReloadTime;
+
 };
 
 USTRUCT(BlueprintType)
@@ -220,4 +223,5 @@ public:
 
 	void Reload();
 
+	float GetReloadTime();
 };

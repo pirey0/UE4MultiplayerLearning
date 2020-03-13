@@ -16,6 +16,8 @@ class ASZipline;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnClosestWeaponChangeSignature, class ASCharacter*, Character, class ASWeapon*, OldClosestWeapon, class ASWeapon*, NewClosestWeapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDealtDamageSignature, class ASCharacter*, Character, float , Amount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnReloadSignature, class ASCharacter*, Character, float, ReloadTime);
+
 
 UENUM()
 enum ECharacterState
@@ -191,6 +193,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDealtDamageSignature OnDealDamage;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnReloadSignature OnReload;
 
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterState(ECharacterState NewState, float Duration = -1);

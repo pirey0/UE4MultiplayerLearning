@@ -249,6 +249,11 @@ void ASWeapon::Reload()
 	MulticastReloadSound();	
 }
 
+float ASWeapon::GetReloadTime()
+{
+	return WeaponsData.ReloadTime;
+}
+
 
 void ASWeapon::ServerReload_Implementation()
 {
