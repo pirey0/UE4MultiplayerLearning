@@ -7,6 +7,7 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "TimerManager.h"
 #include "SCharacter.h"
+#include "SGameModeBase.h"
 
 ASPlayerController::ASPlayerController() 
 {
@@ -20,7 +21,19 @@ void ASPlayerController::RespawnDefaultPawnAndPossess()
 	{
 		AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
 
-		AActor* PlayerStart = GameMode->ChoosePlayerStart(this);
+		ASGameModeBase* GMB = Cast<ASGameModeBase>(GameMode);
+		AActor* PlayerStart = nullptr;
+		if (GMB)
+		{
+			PlayerStart = GMB->ChoseBestRespawnPlayerStart(this);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Using default PlayerStart selection"));
+			PlayerStart = GameMode->ChoosePlayerStart(this);
+		}
+
+
 
 		UClass* PawnClass = GameMode->GetDefaultPawnClassForController(this);
 

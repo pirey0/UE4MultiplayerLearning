@@ -5,7 +5,10 @@
 #include "SGameStateBase.h"
 #include "SPlayerController.h"
 #include "SCharacter.h"
-
+#include "GameFramework/Controller.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerStart.h"
+#include "EngineUtils.h"
 
 void ASGameModeBase::ResetAllKDA()
 {
@@ -48,6 +51,45 @@ void ASGameModeBase::PostLogin(APlayerController * NewPlayer)
 			NewCharacter->OnDeath.AddDynamic(this, &ASGameModeBase::OnPlayerCharacterDeath);
 		}
 	}
+}
+
+AActor * ASGameModeBase::ChoseBestRespawnPlayerStart(AController* Player)
+{
+	UWorld* World = GetWorld();
+	APlayerStart* BestStart = nullptr;
+	float MinScore = TNumericLimits<float>::Max();
+
+	TArray<AActor*> Characters;
+		
+	UGameplayStatics::GetAllActorsOfClass( this, ASCharacter::StaticClass(), Characters);
+
+
+
+	for (TActorIterator<APlayerStart> It(World); It; ++It)
+	{
+		APlayerStart* PlayerStart = *It;
+		float Score = 0;
+
+			for (size_t i = 0; i < Characters.Num(); i++)
+			{
+				float Dist = FVector::Distance(PlayerStart->GetActorLocation(), Characters[i]->GetActorLocation());
+
+				Score += 1 / FMath::Sqrt(Dist);
+
+			}
+
+		//UE_LOG(LogTemp, Log, TEXT("%s has a Score of: %f"), *PlayerStart->GetName(), Score);
+		if (Score < MinScore) 
+		{
+			MinScore = Score;
+			BestStart = PlayerStart;
+		}
+	}
+
+
+
+	return BestStart;
+
 }
 
 void ASGameModeBase::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn * NewPawn)

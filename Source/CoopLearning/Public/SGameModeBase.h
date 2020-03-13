@@ -39,4 +39,6 @@ public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	AActor* ChoseBestRespawnPlayerStart(AController* Player);
+
 };
