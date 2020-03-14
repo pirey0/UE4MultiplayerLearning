@@ -185,7 +185,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	int StartGranadeCount;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	int GranadeCount;
 
 	UFUNCTION(Server, Reliable, WithValidation)
