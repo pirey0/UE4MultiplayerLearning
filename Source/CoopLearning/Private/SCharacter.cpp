@@ -22,6 +22,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "SGameInstance.h"
 #include "SUserSaveGame.h"
+#include "SGranade.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -60,6 +61,8 @@ void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GranadeCount = StartGranadeCount;
+
 	DefaultFOV = CameraComp->FieldOfView;
 
 	if (Role == ROLE_Authority)
@@ -80,7 +83,7 @@ void ASCharacter::BeginPlay()
 
 void ASCharacter::MoveForward(float Value)
 {
-	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Melee)
+	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Action)
 	{
 		AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer());
 	}
@@ -88,7 +91,7 @@ void ASCharacter::MoveForward(float Value)
 
 void ASCharacter::MoveRight(float Value)
 {
-	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Melee)
+	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Action)
 	{
 		AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer());
 	}
@@ -317,7 +320,7 @@ void ASCharacter::BeginMelee()
 	if (State == STATE_Normal) 
 	{
 		UE_LOG(LogTemp, Log, TEXT("Begin Melee"));
-		SetCharacterState(STATE_Melee, 1.0f);
+		SetCharacterState(STATE_Action, 1.0f);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(this);
@@ -337,6 +340,15 @@ void ASCharacter::BeginMelee()
 			UE_LOG(LogTemp, Log, TEXT("Melee Hit %s"), *HitActor->GetName());
 			UGameplayStatics::ApplyPointDamage(HitActor, MeleeDamage, EyeRotation.Vector(), Hit, GetInstigatorController(), this, MeleeDamageType);
 		}
+	}
+
+}
+
+void ASCharacter::BeginGranade()
+{
+	if (State == STATE_Normal && GranadeCount > 0) 
+	{
+		ServerBeginGranade();
 	}
 
 }
@@ -494,6 +506,37 @@ bool ASCharacter::ServerBeginMelee_Validate()
 	return true;
 }
 
+void ASCharacter::ServerBeginGranade_Implementation()
+{
+	if (State == STATE_Normal && GranadeCount > 0) 
+	{
+		GranadeCount -= 1;
+		SetCharacterState(STATE_Action, 1.0f);
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		FVector EyeLocation;
+		FRotator EyeRotator;
+		GetActorEyesViewPoint(EyeLocation, EyeRotator);
+
+		//Spawn Granade a meter in front
+		ASGranade* Granade = GetWorld()->SpawnActor<ASGranade>(GranadeType, GetActorLocation() + EyeRotator.Vector() * 100, FRotator::ZeroRotator, SpawnParams);
+		Granade->SetOwner(this);
+
+		FVector Impulse = EyeRotator.Vector() * GranadeThrowForce;
+
+		Granade->GetMeshComp()->AddImpulse(Impulse, NAME_None, true);
+		
+	}
+
+}
+
+bool ASCharacter::ServerBeginGranade_Validate()
+{
+	return GranadeCount > 0;
+}
+
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)
 {
@@ -587,6 +630,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &ASCharacter::BeginMelee);
 
+	PlayerInputComponent->BindAction("Granade", IE_Pressed, this, &ASCharacter::BeginGranade);
+
 }
 
 FVector ASCharacter::GetPawnViewLocation() const
@@ -632,4 +677,5 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, State);
 	DOREPLIFETIME(ASCharacter, CurrentZipline);
 	DOREPLIFETIME(ASCharacter, ZiplineDirectionIsForward);
+	DOREPLIFETIME(ASCharacter, GranadeCount);
 }

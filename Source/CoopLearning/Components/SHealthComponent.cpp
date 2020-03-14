@@ -41,11 +41,14 @@ void USHealthComponent::HandleTakeAnyDamage(AActor * DamagedActor, float Damage,
 	OnHealthChanged.Broadcast(this, Health, Damage, DamageType, InstigatedBy, DamageCauser);
 
 
-	ASCharacter* Character = Cast<ASCharacter>(InstigatedBy->GetPawn());
-
-	if (Character)
+	if (InstigatedBy) 
 	{
-		Character->NotifyDamageDealt(Damage);
+		ASCharacter* Character = Cast<ASCharacter>(InstigatedBy->GetPawn());
+
+		if (Character)
+		{
+			Character->NotifyDamageDealt(Damage);
+		}
 	}
 }
 

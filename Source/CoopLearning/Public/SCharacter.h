@@ -12,6 +12,7 @@ class ASWeapon;
 class USHealthComponent;
 class USphereComponent;
 class ASZipline;
+class ASGranade;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnClosestWeaponChangeSignature, class ASCharacter*, Character, class ASWeapon*, OldClosestWeapon, class ASWeapon*, NewClosestWeapon);
@@ -24,7 +25,7 @@ enum ECharacterState
 {
 	STATE_Normal,
 	STATE_Reloading,
-	STATE_Melee,
+	STATE_Action,
 	STATE_Zipline
 };
 
@@ -70,6 +71,8 @@ protected:
 	void BeginInteract();
 
 	void BeginMelee();
+
+	void BeginGranade();
 
 	void EquipWeapon(ASWeapon* weapon);
 
@@ -175,6 +178,21 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	TSubclassOf<UDamageType> MeleeDamageType;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	TSubclassOf<ASGranade> GranadeType;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	int StartGranadeCount;
+
+	UPROPERTY(Replicated)
+	int GranadeCount;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerBeginGranade();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float GranadeThrowForce;
 
 public:	
 	// Called every frame
