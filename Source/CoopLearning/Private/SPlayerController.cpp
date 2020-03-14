@@ -8,6 +8,8 @@
 #include "TimerManager.h"
 #include "SCharacter.h"
 #include "SGameModeBase.h"
+#include "Net/UnrealNetwork.h"
+#include "SWeapon.h"
 
 ASPlayerController::ASPlayerController() 
 {
@@ -45,7 +47,6 @@ void ASPlayerController::RespawnDefaultPawnAndPossess()
 
 		APawn* SpawnedActor = GetWorld()->SpawnActor<APawn>(PawnClass, NewSpawnLocation, NewSpawnRotator, SpawnParameters);
 		Possess(SpawnedActor);
-
 	}
 
 }
@@ -72,6 +73,27 @@ void ASPlayerController::BlendToController(AController * KillerController, float
 	{
 		SetViewTargetWithBlend(KillerController->GetPawn(), Time, VTBlend_EaseOut, 0.5f);
 	}
+}
+
+void ASPlayerController::SetRespawnWeapon(TSubclassOf<ASWeapon> NewWeaponType)
+{
+	ServerSetRespawnWeapon(NewWeaponType);
+}
+
+void ASPlayerController::ServerSetRespawnWeapon_Implementation(TSubclassOf<ASWeapon> NewWeaponType)
+{
+	RespawnWeapon = NewWeaponType;
+	UE_LOG(LogTemp, Log, TEXT("%s: Changed RespawnWeapon to %s"), *GetName(), *NewWeaponType->GetName());
+}
+
+bool ASPlayerController::ServerSetRespawnWeapon_Validate(TSubclassOf<ASWeapon> NewWeaponType)
+{
+	return true;
+}
+
+TSubclassOf<ASWeapon> ASPlayerController::GetRespawnWeapon()
+{
+	return RespawnWeapon;
 }
 
 void ASPlayerController::OnPossess(APawn* InPawn)
@@ -103,3 +125,9 @@ void ASPlayerController::OnUnPossess()
 
 }
 
+void ASPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASPlayerController, RespawnWeapon);
+}

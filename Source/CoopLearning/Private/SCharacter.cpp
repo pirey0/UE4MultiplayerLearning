@@ -23,6 +23,7 @@
 #include "SGameInstance.h"
 #include "SUserSaveGame.h"
 #include "SGranade.h"
+#include "SPlayerController.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -68,16 +69,10 @@ void ASCharacter::BeginPlay()
 	if (Role == ROLE_Authority)
 	{
 		MeleeDistance = DefaultMeleeDistance;
-
 		MeleeDamage = DefaultMeleeDamage;
 
 		HealthComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHeathChanged);
 
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		ASWeapon* NewWeapon = GetWorld()->SpawnActor<ASWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		EquipWeapon(NewWeapon);
 	}
 }
 
@@ -225,6 +220,27 @@ USHealthComponent* ASCharacter::GetHealthComponent()
 void ASCharacter::NotifyDamageDealt(float Amount)
 {
 	MulticastNotifyDamageDealt(Amount);
+}
+
+void ASCharacter::SpawnWeapon()
+{
+	TSubclassOf<ASWeapon> WeaponClass = StarterWeaponClass;
+
+	ASPlayerController* PC = Cast<ASPlayerController>(GetController());
+
+	if (PC)
+	{
+		WeaponClass = PC->GetRespawnWeapon();
+		UE_LOG(LogTemp, Log, TEXT("Setting PC Respawn Weapon"));
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Respawning with Weapon: %s"), *WeaponClass->GetName());
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	ASWeapon* NewWeapon = GetWorld()->SpawnActor<ASWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	EquipWeapon(NewWeapon);
 }
 
 void ASCharacter::MulticastNotifyDamageDealt_Implementation(float Amount)
@@ -526,15 +542,19 @@ void ASCharacter::ServerBeginGranade_Implementation()
 
 		FVector Impulse = EyeRotator.Vector() * GranadeThrowForce;
 
-		Granade->GetMeshComp()->AddImpulse(Impulse, NAME_None, true);
-		
+		Granade->GetMeshComp()->AddImpulse(Impulse, NAME_None, true);	
 	}
-
 }
 
 bool ASCharacter::ServerBeginGranade_Validate()
 {
 	return GranadeCount > 0;
+}
+
+void ASCharacter::PossessedBy(AController * NewController)
+{
+	Super::PossessedBy(NewController);
+	SpawnWeapon();
 }
 
 // Called every frame
@@ -649,7 +669,7 @@ void ASCharacter::SetCharacterState(ECharacterState NewState, float Duration)
 	PreviousState = State;
 	State = NewState;
 
-	UE_LOG(LogTemp, Log, TEXT( "%s changed state to %s"), *GetPlayerState()->GetPlayerName(), *GETENUMSTRING("ECharacterState", State));
+	//UE_LOG(LogTemp, Log, TEXT( "%s changed state to %s"), *GetPlayerState()->GetPlayerName(), *GETENUMSTRING("ECharacterState", State));
 
 	if (Duration > 0)
 	{

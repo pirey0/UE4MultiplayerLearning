@@ -194,6 +194,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	float GranadeThrowForce;
 
+	virtual void PossessedBy(AController* NewController) override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -230,4 +232,6 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastNotifyDamageDealt(float Amount);
+
+	void SpawnWeapon();
 };

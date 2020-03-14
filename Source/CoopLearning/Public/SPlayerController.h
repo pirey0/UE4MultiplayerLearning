@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "SPlayerController.generated.h"
 
+class ASWeapon;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPossessSignature, class ASPlayerController*, PC, APawn*, NewPawn);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnPossessSignature, class ASPlayerController*, PC);
 
@@ -28,6 +30,9 @@ protected:
 
 	FTimerHandle TimerHandle_Respawn;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "PlayerController")
+	TSubclassOf<ASWeapon> RespawnWeapon;
+
 public:
 	void SpawnSpectatorAndPossess();
 
@@ -41,4 +46,11 @@ public:
 
 	void BlendToController(AController* KillerController, float Time);
 
+	UFUNCTION(BlueprintCallable, Category = "PlayerController")
+	void SetRespawnWeapon(TSubclassOf<ASWeapon> NewWeaponType);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetRespawnWeapon(TSubclassOf<ASWeapon> NewWeaponType);
+
+	TSubclassOf<ASWeapon> GetRespawnWeapon();
 };
