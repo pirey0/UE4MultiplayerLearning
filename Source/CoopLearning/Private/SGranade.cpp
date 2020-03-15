@@ -45,8 +45,15 @@ void ASGranade::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorldTimerManager().SetTimer(TimerHandle_DefaultExplosion, this, &ASGranade::DefaultExplode, ExplosionDefaultTime, true);
+	if (Role <= ROLE_Authority) 
+	{
+		GetWorldTimerManager().SetTimer(TimerHandle_DefaultExplosion, this, &ASGranade::DefaultExplode, ExplosionDefaultTime, true);
+	}
 
+	if (SpawnSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SpawnSound, GetActorLocation(), 1, 1, 0, SoundAttenuation);
+	}
 }
 
 void ASGranade::OnHeathChanged(USHealthComponent * SourceHealthComp, float Health, float HealthDelta, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
