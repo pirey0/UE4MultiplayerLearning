@@ -157,6 +157,11 @@ void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * I
 {
 	ASPlayerController* PC = Cast<ASPlayerController>(Character->Controller);
 
+	if (!PC) 
+	{
+		return;
+	}
+
 	RestartPlayerDelayed(PC, MinRespawnDelay);
 
 	ASPlayerState* DierState = Cast<ASPlayerState>(Character->GetPlayerState());
@@ -176,5 +181,7 @@ void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * I
 	{
 		UE_LOG(LogTemp, Log, TEXT("%s killed %s"), *DierState->GetPlayerName(), *InstigatorState->GetPlayerName());
 	}
+
+	OnPlayerDeath.Broadcast(PC, Cast<ASPlayerController>(InstigatedBy));
 
 }

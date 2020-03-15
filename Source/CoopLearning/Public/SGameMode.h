@@ -11,6 +11,9 @@ class ASCharacter;
 class ASPlayerController;
 class APlayerState;
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerDeathSignature, class ASPlayerController*, Dier, class ASPlayerController*, Killer);
+
 UCLASS()
 class COOPLEARNING_API ASGameMode : public AGameMode
 {
@@ -45,4 +48,8 @@ public:
 	virtual void RestartPlayer(AController* NewPlayer) override;
 
 	virtual void RestartPlayerDelayed(AController* Player, float Delay);
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnPlayerDeathSignature OnPlayerDeath;
+
 };
