@@ -2,7 +2,7 @@
 
 
 #include "SGameInstance.h"
-
+#include "SUserSaveGame.h"
 
 USGameInstance::USGameInstance() 
 {
@@ -12,4 +12,14 @@ USGameInstance::USGameInstance()
 USUserSaveGame * USGameInstance::GetUserSaveGame()
 {
 	return UserSaveGame;
+}
+
+FNetUserData USGameInstance::GetNetUserData()
+{
+	FNetUserData UserData = FNetUserData();
+	
+	UserData.UserName = UserSaveGame->UserName;
+	UserData.UserPreferredColor = UserSaveGame->UserPreferredColor;
+
+	return UserData;
 }

@@ -19,19 +19,13 @@ class COOPLEARNING_API ASGameMode : public AGameMode
 protected:
 
 	UFUNCTION(Exec, Category = "Cheats")
-		void ResetAllKDA();
+	void ResetAllKDA();
 
 	UFUNCTION()
 	virtual void OnPlayerPossesWithAuthority(ASPlayerController* PC, APawn* NewPawn);
 	
 	UFUNCTION()
 	virtual void OnPlayerCharacterDeath( ASCharacter* Character, AController* InstigatedBy, AActor* DamageCauser);
-
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-	virtual void CheckForGameEnd();
-
-	UFUNCTION(Exec, Category = "Cheats")
-	virtual void RestartGameMode();
 
 public:
 
@@ -44,4 +38,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 	void SetPlayerColor(FLinearColor NewColor, APlayerState* PlayerState);
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void SetPlayerColorFromFloat(float NewColorAsFloat, APlayerState* PlayerState);
+
+	virtual void RestartPlayer(AController* NewPlayer) override;
+
+	virtual void RestartPlayerDelayed(AController* Player, float Delay);
 };

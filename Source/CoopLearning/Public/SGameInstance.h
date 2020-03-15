@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "SUserSaveGame.h"
 #include "SGameInstance.generated.h"
 
 
@@ -31,4 +32,5 @@ public:
 
 	USUserSaveGame* GetUserSaveGame();
 
+	FNetUserData GetNetUserData();
 };
