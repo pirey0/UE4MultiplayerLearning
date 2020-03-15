@@ -7,7 +7,7 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "TimerManager.h"
 #include "SCharacter.h"
-#include "SGameModeBase.h"
+#include "SGameMode.h"
 #include "Net/UnrealNetwork.h"
 #include "SWeapon.h"
 
@@ -23,7 +23,7 @@ void ASPlayerController::RespawnDefaultPawnAndPossess()
 	{
 		AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
 
-		ASGameModeBase* GMB = Cast<ASGameModeBase>(GameMode);
+		ASGameMode* GMB = Cast<ASGameMode>(GameMode);
 		AActor* PlayerStart = nullptr;
 		if (GMB)
 		{
