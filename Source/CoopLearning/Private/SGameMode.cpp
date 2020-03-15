@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "SGameModeBase.h"
+#include "SGameMode.h"
 #include "SPlayerState.h"
-#include "SGameStateBase.h"
+#include "SGameState.h"
 #include "SPlayerController.h"
 #include "SCharacter.h"
 #include "GameFramework/Controller.h"
@@ -10,9 +10,9 @@
 #include "GameFramework/PlayerStart.h"
 #include "EngineUtils.h"
 
-void ASGameModeBase::ResetAllKDA()
+void ASGameMode::ResetAllKDA()
 {
-	ASGameStateBase* GS = Cast<ASGameStateBase>(GameState);
+	ASGameState* GS = Cast<ASGameState>(GameState);
 
 	for (size_t i = 0; i < GS->PlayerArray.Num(); i++)
 	{
@@ -22,17 +22,17 @@ void ASGameModeBase::ResetAllKDA()
 
 }
 
-void ASGameModeBase::CheckForGameEnd()
+void ASGameMode::CheckForGameEnd()
 {
 
 }
 
-void ASGameModeBase::RestartGameMode()
+void ASGameMode::RestartGameMode()
 {
 	ResetAllKDA();
 }
 
-void ASGameModeBase::PostLogin(APlayerController * NewPlayer)
+void ASGameMode::PostLogin(APlayerController * NewPlayer)
 {
 	ASPlayerState* PS = Cast<ASPlayerState>(NewPlayer->PlayerState);
 	PS->SetColor(FLinearColor::MakeRandomColor());
@@ -42,18 +42,18 @@ void ASGameModeBase::PostLogin(APlayerController * NewPlayer)
 
 	if (PC)
 	{
-		PC->OnPossessWithAuthority.AddDynamic(this, &ASGameModeBase::OnPlayerPossesWithAuthority);
+		PC->OnPossessWithAuthority.AddDynamic(this, &ASGameMode::OnPlayerPossesWithAuthority);
 		 
 		ASCharacter* NewCharacter = Cast<ASCharacter>(PC->GetPawn());
 
 		if (NewCharacter) 
 		{
-			NewCharacter->OnDeath.AddDynamic(this, &ASGameModeBase::OnPlayerCharacterDeath);
+			NewCharacter->OnDeath.AddDynamic(this, &ASGameMode::OnPlayerCharacterDeath);
 		}
 	}
 }
 
-AActor * ASGameModeBase::ChoseBestRespawnPlayerStart(AController* Player)
+AActor * ASGameMode::ChoseBestRespawnPlayerStart(AController* Player)
 {
 	UWorld* World = GetWorld();
 	APlayerStart* BestStart = nullptr;
@@ -92,18 +92,39 @@ AActor * ASGameModeBase::ChoseBestRespawnPlayerStart(AController* Player)
 
 }
 
-void ASGameModeBase::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn * NewPawn)
+void ASGameMode::SetPlayerName(FString NewName, APlayerState * PlayerState)
+{
+	ASPlayerState* PS = Cast<ASPlayerState>(PlayerState);
+
+	if (PS)
+	{
+		PS->SetName(NewName);
+	}
+
+}
+
+void ASGameMode::SetPlayerColor(FLinearColor NewColor, APlayerState * PlayerState)
+{
+	ASPlayerState* PS = Cast<ASPlayerState>(PlayerState);
+
+	if (PS)
+	{
+		PS->SetColor(NewColor);
+	}
+}
+
+void ASGameMode::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn * NewPawn)
 {
 	ASCharacter* NewCharacter = Cast<ASCharacter>(NewPawn);
 
 	if (NewCharacter)
 	{
-		NewCharacter->OnDeath.AddDynamic(this, &ASGameModeBase::OnPlayerCharacterDeath);
+		NewCharacter->OnDeath.AddDynamic(this, &ASGameMode::OnPlayerCharacterDeath);
 	}
 
 }
 
-void ASGameModeBase::OnPlayerCharacterDeath(ASCharacter * Character, AController * InstigatedBy, AActor * DamageCauser)
+void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * InstigatedBy, AActor * DamageCauser)
 {
 	ASPlayerController* PC = Cast<ASPlayerController>(Character->Controller);
 	if (PC)

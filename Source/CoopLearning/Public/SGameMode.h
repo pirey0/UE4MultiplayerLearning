@@ -3,15 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
-#include "SGameModeBase.generated.h"
+#include "GameFramework/GameMode.h"
+#include "SGameMode.generated.h"
 
 
 class ASCharacter;
 class ASPlayerController;
+class APlayerState;
 
 UCLASS()
-class COOPLEARNING_API ASGameModeBase : public AGameModeBase
+class COOPLEARNING_API ASGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	
@@ -41,4 +42,9 @@ public:
 
 	AActor* ChoseBestRespawnPlayerStart(AController* Player);
 
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void SetPlayerName(FString NewName, APlayerState* PlayerState);
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void SetPlayerColor(FLinearColor NewColor, APlayerState* PlayerState);
 };

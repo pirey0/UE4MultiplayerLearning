@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameStateBase.h"
-#include "SGameStateBase.generated.h"
+#include "GameFramework/GameState.h"
+#include "SGameState.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
-class COOPLEARNING_API ASGameStateBase : public AGameStateBase
+class COOPLEARNING_API ASGameState : public AGameState
 {
 	GENERATED_BODY()
 	
@@ -18,6 +16,6 @@ class COOPLEARNING_API ASGameStateBase : public AGameStateBase
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameState")
-		FString GetAllPlayersInfo();
+	FString GetAllPlayersInfo();
 
 };

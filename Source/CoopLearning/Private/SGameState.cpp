@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SGameStateBase.h"
+#include "SGameState.h"
 #include "SPlayerState.h"
 
-FString ASGameStateBase::GetAllPlayersInfo()
+FString ASGameState::GetAllPlayersInfo()
 {
 	FString Content;
 
