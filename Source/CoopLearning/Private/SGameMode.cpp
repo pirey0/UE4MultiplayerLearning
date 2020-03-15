@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "EngineUtils.h"
+#include "TimerManager.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void ASGameMode::ResetAllKDA()
 {
@@ -20,16 +22,6 @@ void ASGameMode::ResetAllKDA()
 		PS->Reset();
 	}
 
-}
-
-void ASGameMode::CheckForGameEnd()
-{
-
-}
-
-void ASGameMode::RestartGameMode()
-{
-	ResetAllKDA();
 }
 
 void ASGameMode::PostLogin(APlayerController * NewPlayer)
@@ -48,6 +40,8 @@ void ASGameMode::PostLogin(APlayerController * NewPlayer)
 		{
 			NewCharacter->OnDeath.AddDynamic(this, &ASGameMode::OnPlayerCharacterDeath);
 		}
+
+		PC->ClientRequestNetUserData();
 	}
 }
 
@@ -99,6 +93,7 @@ void ASGameMode::SetPlayerName(FString NewName, APlayerState * PlayerState)
 		PS->SetName(NewName);
 	}
 
+	UE_LOG(LogTemp, Log, TEXT("%s renamed to %s"), *PlayerState->GetPlayerName(), *NewName);
 }
 
 void ASGameMode::SetPlayerColor(FLinearColor NewColor, APlayerState * PlayerState)
@@ -109,6 +104,42 @@ void ASGameMode::SetPlayerColor(FLinearColor NewColor, APlayerState * PlayerStat
 	{
 		PS->SetColor(NewColor);
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("%s Changed color to %s"), *PlayerState->GetPlayerName(), *NewColor.ToString());
+}
+
+void ASGameMode::SetPlayerColorFromFloat(float NewColorAsFloat, APlayerState * PlayerState)
+{
+	FLinearColor Color;
+
+	UKismetMathLibrary::LinearColor_SetFromHSV(Color, NewColorAsFloat, 1, 1, 1);
+	SetPlayerColor(Color, PlayerState);
+}
+
+void ASGameMode::RestartPlayer(AController * NewPlayer)
+{
+	AActor* PlayerStart = nullptr;
+	PlayerStart = ChoseBestRespawnPlayerStart(NewPlayer);
+
+	UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer);
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	FVector NewSpawnLocation = PlayerStart->GetActorLocation();
+	FRotator NewSpawnRotator = PlayerStart->GetActorRotation();
+
+	APawn* SpawnedActor = GetWorld()->SpawnActor<APawn>(PawnClass, NewSpawnLocation, NewSpawnRotator, SpawnParameters);
+	NewPlayer->Possess(SpawnedActor);
+}
+
+void ASGameMode::RestartPlayerDelayed(AController * Player, float Delay)
+{
+	UE_LOG(LogTemp, Log, TEXT("Called Respawn Pawn"));
+	FTimerHandle UniqueHandle;
+	FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(this, &ASGameMode::RestartPlayer, Player);
+
+	GetWorldTimerManager().SetTimer(UniqueHandle, RespawnDelegate, Delay, false);
 }
 
 void ASGameMode::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn * NewPawn)
@@ -125,10 +156,8 @@ void ASGameMode::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn * Ne
 void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * InstigatedBy, AActor * DamageCauser)
 {
 	ASPlayerController* PC = Cast<ASPlayerController>(Character->Controller);
-	if (PC)
-	{
-		PC->DelayedRespawnDefaultPawnAndPossess(MinRespawnDelay);
-	}
+
+	RestartPlayerDelayed(PC, MinRespawnDelay);
 
 	ASPlayerState* DierState = Cast<ASPlayerState>(Character->GetPlayerState());
 	ASPlayerState* InstigatorState = Cast<ASPlayerState>(InstigatedBy->PlayerState);
@@ -148,5 +177,4 @@ void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * I
 		UE_LOG(LogTemp, Log, TEXT("%s killed %s"), *DierState->GetPlayerName(), *InstigatorState->GetPlayerName());
 	}
 
-	CheckForGameEnd();
 }

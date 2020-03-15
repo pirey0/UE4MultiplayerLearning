@@ -6,6 +6,22 @@
 #include "GameFramework/SaveGame.h"
 #include "SUserSaveGame.generated.h"
 
+
+USTRUCT()
+struct FNetUserData
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY()
+	FString UserName;
+
+	UPROPERTY()
+	float UserPreferredColor;
+
+};
+
 /**
  * 
  */

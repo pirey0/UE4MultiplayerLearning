@@ -47,6 +47,9 @@ protected:
 	TSubclassOf<UDamageType> ExplosionDamageType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Granade")
+	USoundCue* SpawnSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Granade")
 	USoundCue* ExplosionSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Granade")

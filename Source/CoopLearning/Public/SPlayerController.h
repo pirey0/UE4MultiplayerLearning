@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "SUserSaveGame.h"
 #include "SPlayerController.generated.h"
 
 class ASWeapon;
+
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPossessSignature, class ASPlayerController*, PC, APawn*, NewPawn);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnPossessSignature, class ASPlayerController*, PC);
@@ -21,28 +23,20 @@ public:
 
 protected:
 
-	UFUNCTION(BlueprintCallable)
-	void RespawnDefaultPawnAndPossess();
-
 	void OnPossess(APawn* InPawn) override;
 
 	void OnUnPossess() override;
-
-	FTimerHandle TimerHandle_Respawn;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "PlayerController")
 	TSubclassOf<ASWeapon> RespawnWeapon;
 
 public:
-	void SpawnSpectatorAndPossess();
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnPossessSignature OnPossessWithAuthority;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnUnPossessSignature OnUnPossessWithAuthority;
-
-	void DelayedRespawnDefaultPawnAndPossess(float DelayTime);
 
 	void BlendToController(AController* KillerController, float Time);
 
@@ -53,4 +47,10 @@ public:
 	void ServerSetRespawnWeapon(TSubclassOf<ASWeapon> NewWeaponType);
 
 	TSubclassOf<ASWeapon> GetRespawnWeapon();
+
+	UFUNCTION(Client, Reliable)
+	void ClientRequestNetUserData();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSendNetUserData(FNetUserData UserData);
 };
