@@ -93,6 +93,7 @@ void ASGameMode::SetPlayerName(FString NewName, APlayerState * PlayerState)
 		PS->SetName(NewName);
 	}
 
+	UE_LOG(LogTemp, Log, TEXT("%s renamed to %s"), *PlayerState->GetPlayerName(), *NewName);
 }
 
 void ASGameMode::SetPlayerColor(FLinearColor NewColor, APlayerState * PlayerState)
@@ -103,6 +104,8 @@ void ASGameMode::SetPlayerColor(FLinearColor NewColor, APlayerState * PlayerStat
 	{
 		PS->SetColor(NewColor);
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("%s Changed color to %s"), *PlayerState->GetPlayerName(), *NewColor.ToString());
 }
 
 void ASGameMode::SetPlayerColorFromFloat(float NewColorAsFloat, APlayerState * PlayerState)
