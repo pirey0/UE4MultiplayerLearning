@@ -34,8 +34,6 @@ void ASGameMode::RestartGameMode()
 
 void ASGameMode::PostLogin(APlayerController * NewPlayer)
 {
-	ASPlayerState* PS = Cast<ASPlayerState>(NewPlayer->PlayerState);
-	PS->SetColor(FLinearColor::MakeRandomColor());
 	Super::PostLogin(NewPlayer);
 	
 	ASPlayerController* PC = Cast<ASPlayerController>(NewPlayer);
@@ -129,7 +127,7 @@ void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * I
 	ASPlayerController* PC = Cast<ASPlayerController>(Character->Controller);
 	if (PC)
 	{
-		PC->DelayedRespawnDefaultPawnAndPossess(PlayerRespawnTime);
+		PC->DelayedRespawnDefaultPawnAndPossess(MinRespawnDelay);
 	}
 
 	ASPlayerState* DierState = Cast<ASPlayerState>(Character->GetPlayerState());

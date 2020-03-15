@@ -27,9 +27,6 @@ protected:
 	UFUNCTION()
 	virtual void OnPlayerCharacterDeath( ASCharacter* Character, AController* InstigatedBy, AActor* DamageCauser);
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameMode")
-	float PlayerRespawnTime;
-
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 	virtual void CheckForGameEnd();
 
