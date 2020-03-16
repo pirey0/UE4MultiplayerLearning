@@ -490,6 +490,11 @@ ASWeapon* ASCharacter::GetClosestWeapon(FVector sourceLocation, TArray<AActor*> 
 		ASWeapon* WeaponCast = Cast<ASWeapon>(actors[i]);
 		if (WeaponCast) 
 		{
+			if (WeaponCast == CurrentWeapon) 
+			{
+				continue;
+			}
+
 			float distance = FVector::DistSquared(sourceLocation, actors[i]->GetActorLocation());
 			if (distance < currentClosestDistance)
 			{
@@ -557,6 +562,13 @@ void ASCharacter::PossessedBy(AController * NewController)
 	SpawnWeapon();
 }
 
+void ASCharacter::ClientNotifyClosestWeaponChange_Implementation(ASWeapon * OldClosestWeapon, ASWeapon * NewClosestWeapon)
+{
+	ClosestWeapon = NewClosestWeapon;
+
+	OnClosestWeaponChange.Broadcast(this, OldClosestWeapon, NewClosestWeapon);
+}
+
 // Called every frame
 void ASCharacter::Tick(float DeltaTime)
 {
@@ -572,8 +584,10 @@ void ASCharacter::Tick(float DeltaTime)
 		CameraComp->SetFieldOfView(NewFOV);
 
 		AimProgress = 1 - ((NewFOV - ZoomedFOV) / (DefaultFOV - ZoomedFOV));
+	}
 
-
+	if (Role >= ROLE_Authority) 
+	{
 		TArray<AActor*> ActorsInArea;
 		GetOverlappingActors(ActorsInArea, TSubclassOf<AActor>());
 
@@ -583,10 +597,10 @@ void ASCharacter::Tick(float DeltaTime)
 		{
 			ASWeapon* OldWeapon = ClosestWeapon;
 			ClosestWeapon = NewClosestWeapon;
-			OnClosestWeaponChange.Broadcast(this, OldWeapon, ClosestWeapon);
+			ClientNotifyClosestWeaponChange(OldWeapon, ClosestWeapon);
 		}
-
 	}
+
 
 	if (Role >= ROLE_AutonomousProxy && State == STATE_Zipline)
 	{

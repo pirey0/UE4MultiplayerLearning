@@ -196,6 +196,9 @@ protected:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	UFUNCTION(Client, Reliable)
+	void ClientNotifyClosestWeaponChange(ASWeapon* OldClosestWeapon, class ASWeapon* NewClosestWeapon);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
