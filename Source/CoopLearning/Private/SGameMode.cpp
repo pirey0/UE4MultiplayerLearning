@@ -135,11 +135,18 @@ void ASGameMode::RestartPlayer(AController * NewPlayer)
 
 void ASGameMode::RestartPlayerDelayed(AController * Player, float Delay)
 {
-	UE_LOG(LogTemp, Log, TEXT("Called Respawn Pawn"));
 	FTimerHandle UniqueHandle;
-	FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(this, &ASGameMode::RestartPlayer, Player);
+	FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(this, &ASGameMode::RestartPlayerInProgress, Player);
 
 	GetWorldTimerManager().SetTimer(UniqueHandle, RespawnDelegate, Delay, false);
+}
+
+void ASGameMode::RestartPlayerInProgress(AController * Player)
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		RestartPlayer(Player);
+	}
 }
 
 void ASGameMode::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn * NewPawn)
@@ -150,7 +157,6 @@ void ASGameMode::OnPlayerPossesWithAuthority(ASPlayerController * PC, APawn * Ne
 	{
 		NewCharacter->OnDeath.AddDynamic(this, &ASGameMode::OnPlayerCharacterDeath);
 	}
-
 }
 
 void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * InstigatedBy, AActor * DamageCauser)
@@ -162,7 +168,10 @@ void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * I
 		return;
 	}
 
-	RestartPlayerDelayed(PC, MinRespawnDelay);
+	if (MatchState == MatchState::InProgress) 
+	{
+		RestartPlayerDelayed(PC, MinRespawnDelay);
+	}
 
 	ASPlayerState* DierState = Cast<ASPlayerState>(Character->GetPlayerState());
 	ASPlayerState* InstigatorState = Cast<ASPlayerState>(InstigatedBy->PlayerState);

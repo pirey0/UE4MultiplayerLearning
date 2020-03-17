@@ -33,10 +33,10 @@ protected:
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-		FOnPossessSignature OnPossessWithAuthority;
+	FOnPossessSignature OnPossessWithAuthority;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-		FOnUnPossessSignature OnUnPossessWithAuthority;
+	FOnUnPossessSignature OnUnPossessWithAuthority;
 
 	void BlendToController(AController* KillerController, float Time);
 

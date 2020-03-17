@@ -689,7 +689,8 @@ void ASCharacter::SetCharacterState(ECharacterState NewState, float Duration)
 	{
 		GetWorldTimerManager().SetTimer(TimerHandle_StateSet, this, &ASCharacter::SetStateToPrevious, Duration, false);
 	}
-	else {
+	else 
+	{
 		GetWorldTimerManager().ClearTimer(TimerHandle_StateSet);
 	}
 

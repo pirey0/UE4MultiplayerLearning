@@ -52,4 +52,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnPlayerDeathSignature OnPlayerDeath;
 
+	void RestartPlayerInProgress(AController * Player);
+
 };
