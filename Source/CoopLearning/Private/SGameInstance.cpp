@@ -19,7 +19,7 @@ FNetUserData USGameInstance::GetNetUserData()
 	FNetUserData UserData = FNetUserData();
 	
 	UserData.UserName = UserSaveGame->UserName;
-	UserData.UserPreferredColor = UserSaveGame->UserPreferredColor;
+	UserData.UserCharacterMatId = UserSaveGame->UserCharacterMatId;
 
 	return UserData;
 }

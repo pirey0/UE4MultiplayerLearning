@@ -7,7 +7,7 @@ USUserSaveGame::USUserSaveGame()
 {
 	UserName = "NewPlayer";
 
-	UserPreferredColor = 0;
+	UserCharacterMatId = 0;
 
 	UserServerDefaultIP = "InsertIP";
 

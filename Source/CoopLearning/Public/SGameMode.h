@@ -40,10 +40,7 @@ public:
 	void SetPlayerName(FString NewName, APlayerState* PlayerState);
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
-	void SetPlayerColor(FLinearColor NewColor, APlayerState* PlayerState);
-
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-	void SetPlayerColorFromFloat(float NewColorAsFloat, APlayerState* PlayerState);
+	void SetPlayerMaterialFromId(int MatId, APlayerState* PlayerState);
 
 	virtual void RestartPlayer(AController* NewPlayer) override;
 

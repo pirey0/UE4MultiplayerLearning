@@ -96,24 +96,15 @@ void ASGameMode::SetPlayerName(FString NewName, APlayerState * PlayerState)
 	UE_LOG(LogTemp, Log, TEXT("%s renamed to %s"), *PlayerState->GetPlayerName(), *NewName);
 }
 
-void ASGameMode::SetPlayerColor(FLinearColor NewColor, APlayerState * PlayerState)
+void ASGameMode::SetPlayerMaterialFromId(int MatId, APlayerState * PlayerState)
 {
 	ASPlayerState* PS = Cast<ASPlayerState>(PlayerState);
 
 	if (PS)
 	{
-		PS->SetColor(NewColor);
+		PS->SetMaterialId(MatId);
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("%s Changed color to %s"), *PlayerState->GetPlayerName(), *NewColor.ToString());
-}
-
-void ASGameMode::SetPlayerColorFromFloat(float NewColorAsFloat, APlayerState * PlayerState)
-{
-	FLinearColor Color;
-
-	UKismetMathLibrary::LinearColor_SetFromHSV(Color, NewColorAsFloat, 1, 1, 1);
-	SetPlayerColor(Color, PlayerState);
 }
 
 void ASGameMode::RestartPlayer(AController * NewPlayer)

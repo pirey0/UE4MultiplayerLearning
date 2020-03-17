@@ -45,11 +45,10 @@ void ASPlayerState::SetName(FString S)
 	SetPlayerName(S);
 }
 
-void ASPlayerState::SetColor(FLinearColor NewColor)
+void ASPlayerState::SetMaterialId(int NewMaterialId)
 {
-	Color = NewColor;
+	MaterialId = NewMaterialId;
 }
-
 
 void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -57,5 +56,5 @@ void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 
 	DOREPLIFETIME(ASPlayerState, Kills);
 	DOREPLIFETIME(ASPlayerState, Deaths);
-	DOREPLIFETIME(ASPlayerState, Color);
+	DOREPLIFETIME(ASPlayerState, MaterialId);
 }

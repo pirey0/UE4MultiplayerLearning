@@ -18,7 +18,7 @@ public:
 	FString UserName;
 
 	UPROPERTY()
-	float UserPreferredColor;
+	float UserCharacterMatId;
 
 };
 
@@ -39,7 +39,7 @@ public:
 	FString UserName;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "UserData")
-	float UserPreferredColor;
+	int UserCharacterMatId;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "UserData")
 	FString UserServerDefaultIP;

@@ -21,7 +21,7 @@ ASPlayerController::ASPlayerController()
 
 void ASPlayerController::BlendToController(AController * KillerController, float Time)
 {
-	if (KillerController->GetPawn()) 
+	if (KillerController && KillerController->GetPawn()) 
 	{
 		SetViewTargetWithBlend(KillerController->GetPawn(), Time, VTBlend_EaseOut, 0.5f);
 	}
@@ -63,8 +63,9 @@ void ASPlayerController::ServerSendNetUserData_Implementation(FNetUserData UserD
 
 	if (GM)
 	{
-		GM->SetPlayerColorFromFloat(UserData.UserPreferredColor, PlayerState);
+		GM->SetPlayerMaterialFromId(UserData.UserCharacterMatId, PlayerState);
 		GM->SetPlayerName(UserData.UserName, PlayerState);
+		UE_LOG(LogTemp, Log, TEXT("Recieved NetUserData from Client"));
 	}
 }
 

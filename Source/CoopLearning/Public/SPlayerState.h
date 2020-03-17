@@ -28,7 +28,7 @@ protected:
 	int DeathInARow;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
-	FLinearColor Color;
+	int MaterialId;
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -50,6 +50,6 @@ public:
 		void SetName(FString S);
 
 	UFUNCTION(BlueprintCallable)
-		void SetColor(FLinearColor NewColor);
+		void SetMaterialId(int NewMaterialId);
 };
 

@@ -38,6 +38,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnUnPossessSignature OnUnPossessWithAuthority;
 
+	UFUNCTION(BlueprintCallable, Category = "PlayerController")
 	void BlendToController(AController* KillerController, float Time);
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerController")
