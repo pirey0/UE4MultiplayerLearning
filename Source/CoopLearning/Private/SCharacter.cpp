@@ -80,7 +80,7 @@ void ASCharacter::MoveForward(float Value)
 {
 	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Action)
 	{
-		AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer());
+		AddMovementInput(GetActorForwardVector() * Value * GetAimSlowdownMultiplyer() * GetSneakSpeedMultiplyer());
 	}
 }
 
@@ -88,8 +88,18 @@ void ASCharacter::MoveRight(float Value)
 {
 	if (State == STATE_Normal || State == STATE_Reloading || State == STATE_Action)
 	{
-		AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer());
+		AddMovementInput(GetActorRightVector() * Value * GetAimSlowdownMultiplyer() * GetSneakSpeedMultiplyer());
 	}
+}
+
+float ASCharacter::GetSneakSpeedMultiplyer() 
+{
+	if (InSneak)
+	{
+		return SneakSpeedMultiplyer;
+	}
+
+	return 1;
 }
 
 void ASCharacter::MoveCameraYaw(float Value)
@@ -367,6 +377,16 @@ void ASCharacter::BeginGranade()
 		ServerBeginGranade();
 	}
 
+}
+
+void ASCharacter::BeginSneak() 
+{
+	InSneak = true;
+}
+
+void ASCharacter::EndSneak() 
+{
+	InSneak = false;
 }
 
 void ASCharacter::ServerTryDrop_Implementation()
@@ -666,6 +686,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Granade", IE_Pressed, this, &ASCharacter::BeginGranade);
 
+	PlayerInputComponent->BindAction("Sneak", IE_Pressed, this, &ASCharacter::BeginSneak);
+	PlayerInputComponent->BindAction("Sneak", IE_Released, this, &ASCharacter::EndSneak);
 }
 
 FVector ASCharacter::GetPawnViewLocation() const

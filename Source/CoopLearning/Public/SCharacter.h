@@ -74,6 +74,10 @@ protected:
 
 	void BeginGranade();
 
+	void BeginSneak();
+
+	void EndSneak();
+
 	void EquipWeapon(ASWeapon* weapon);
 
 	void TryUseZipline();
@@ -198,6 +202,14 @@ protected:
 
 	UFUNCTION(Client, Reliable)
 	void ClientNotifyClosestWeaponChange(ASWeapon* OldClosestWeapon, class ASWeapon* NewClosestWeapon);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float SneakSpeedMultiplyer;
+
+	bool InSneak;
+
+	UFUNCTION(BlueprintCallable)
+	float GetSneakSpeedMultiplyer();
 
 public:	
 	// Called every frame
