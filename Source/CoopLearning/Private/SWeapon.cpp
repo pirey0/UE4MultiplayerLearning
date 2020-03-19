@@ -100,7 +100,9 @@ void ASWeapon::StartFire()
 {
 	float FirstDelay = FMath::Max(LastFireTimeStamp + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
 
-	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots,this, &ASWeapon::Fire, TimeBetweenShots, true, FirstDelay);
+	FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(this, &ASWeapon::Fire, 1);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, RespawnDelegate, TimeBetweenShots, true, FirstDelay);
 }
 
 void ASWeapon::StopFire()
@@ -137,13 +139,13 @@ void ASWeapon::Unequip()
 	}
 }
 
-void ASWeapon::Fire()
+void ASWeapon::Fire(int PelletsAmount)
 {
 	LastFireTimeStamp = GetWorld()->TimeSeconds;
 
 	if (Role < ROLE_Authority)
 	{
-		ServerFire();
+		ServerFire(PelletsAmount);
 		return;
 	}
 
@@ -151,7 +153,13 @@ void ASWeapon::Fire()
 
 	if (MyOwner)
 	{
-		FMulticastShotData MulticastData;
+		FMulticastShotData MulticastData = FMulticastShotData();
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(MyOwner);
+		QueryParams.AddIgnoredActor(this);
+		QueryParams.bTraceComplex = true;
+		QueryParams.bReturnPhysicalMaterial = true;
 
 		if (CurrentBulletCount <= 0)
 		{
@@ -159,12 +167,6 @@ void ASWeapon::Fire()
 			MultiCastFire(MulticastData);
 			return;
 		}
-
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(MyOwner);
-		QueryParams.AddIgnoredActor(this);
-		QueryParams.bTraceComplex = true;
-		QueryParams.bReturnPhysicalMaterial = true;
 
 		FHitResult Hit;
 
@@ -180,67 +182,70 @@ void ASWeapon::Fire()
 			}
 			return;
 		}
-		
-		FVector TraceStart;
-		FRotator EyeRotation;
-		MyOwner->GetActorEyesViewPoint(TraceStart, EyeRotation);
 
-		FVector ShotDirection = EyeRotation.Vector();
-
-		float SpreadMultiplyer = FMath::GetMappedRangeValueClamped(FVector2D(0, SpeedEqualToMaxSpread), FVector2D(0, 1), MyOwner->GetVelocity().Size());
-
-		float SpreadAmount = (WeaponsData.MaxSpreadInDegrees / 360.0f) * SpreadMultiplyer;
-
-		ShotDirection = FMath::VRandCone(ShotDirection, SpreadAmount);
-
-		FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData.HitMaxDistance);
-
-		FVector TracerEndPoint = TraceEnd;
-
-		//Get where the crosshair is looking so that you can hit close objects
-		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
+		for (size_t i = 0; i < PelletsAmount; i++)
 		{
-			TraceEnd = WeaponMuzzle + (Hit.ImpactPoint - WeaponMuzzle) * WeaponsData.HitMaxDistance;
-		}
+			FVector TraceStart;
+			FRotator EyeRotation;
+			MyOwner->GetActorEyesViewPoint(TraceStart, EyeRotation);
 
-		//Get from the Weapon Muzzle to the new TraceEnd
-		if (GetWorld()->LineTraceSingleByChannel(Hit, WeaponMuzzle, TraceEnd, COLLISION_WEAPON, QueryParams))
-		{
-			AActor* HitActor = Hit.GetActor();
+			FVector ShotDirection = EyeRotation.Vector();
 
-			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-			float ActualDamage = WeaponsData.BaseDamage;
+			float SpreadMultiplyer = FMath::GetMappedRangeValueClamped(FVector2D(0, SpeedEqualToMaxSpread), FVector2D(0, 1), GetOwner()->GetVelocity().Size());
 
-			if (SurfaceType == SURFACE_FLESHVULNERABLE)
+			float SpreadAmount = (WeaponsData.MaxSpreadInDegrees / 360.0f) * SpreadMultiplyer;
+
+			ShotDirection = FMath::VRandCone(ShotDirection, SpreadAmount);
+
+			FVector TraceEnd = TraceStart + (ShotDirection * WeaponsData.HitMaxDistance);
+
+			FVector TracerEndPoint = TraceEnd;
+
+			//Get where the crosshair is looking so that you can hit close objects
+			if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, COLLISION_WEAPON, QueryParams))
 			{
-				ActualDamage *= WeaponsData.HeadshotMultiplyer;
+				TraceEnd = WeaponMuzzle + (Hit.ImpactPoint - WeaponMuzzle) * WeaponsData.HitMaxDistance;
 			}
 
-			UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData.DamageType);
+			//Get from the Weapon Muzzle to the new TraceEnd
+			if (GetWorld()->LineTraceSingleByChannel(Hit, WeaponMuzzle, TraceEnd, COLLISION_WEAPON, QueryParams))
+			{
+				AActor* HitActor = Hit.GetActor();
 
-			TracerEndPoint = Hit.ImpactPoint;
+				EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+				float ActualDamage = WeaponsData.BaseDamage;
 
-			MulticastData.NoShot = false;
-			MulticastData.HitTarget = true;
-			MulticastData.ImpactPoint = Hit.ImpactPoint;
-			MulticastData.ImpactNormal = Hit.ImpactNormal;
-			MulticastData.SurfaceType = SurfaceType;
+				if (SurfaceType == SURFACE_FLESHVULNERABLE)
+				{
+					ActualDamage *= WeaponsData.HeadshotMultiplyer;
+				}
+
+				UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData.DamageType);
+
+				TracerEndPoint = Hit.ImpactPoint;
+
+				MulticastData.NoShot = false;
+				MulticastData.HitTarget = true;
+				MulticastData.ImpactPoint = Hit.ImpactPoint;
+				MulticastData.ImpactNormal = Hit.ImpactNormal;
+				MulticastData.SurfaceType = SurfaceType;
+			}
+
+			MulticastData.TraceEndPoint = TracerEndPoint;
+			MultiCastFire(MulticastData);
+
+			if (DebugWeaponDrawing > 0)
+			{
+				DrawDebugLine(GetWorld(), WeaponMuzzle, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+
+				if (!MulticastData.HitTarget)
+				{
+					DrawDebugSphere(GetWorld(), TraceEnd, 20, 8, FColor::Yellow, false, 1.0f, 0, 1.0f);
+				}
+			}
 		}
-		
+
 		CurrentBulletCount -= 1;
-
-		MulticastData.TraceEndPoint = TracerEndPoint;
-		MultiCastFire(MulticastData);
-
-		if (DebugWeaponDrawing > 0) 
-		{
-			DrawDebugLine(GetWorld(), WeaponMuzzle, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
-
-			if (!MulticastData.HitTarget) 
-			{
-				DrawDebugSphere(GetWorld(), TraceEnd, 20, 8, FColor::Yellow, false, 1.0f, 0, 1.0f);
-			}
-		}
 	}
 }
 
@@ -300,12 +305,12 @@ void ASWeapon::MultiCastFire_Implementation(FMulticastShotData MulticastData)
 	}
 }
 
-void ASWeapon::ServerFire_Implementation()
+void ASWeapon::ServerFire_Implementation(int PelletsAmount)
 {
-	Fire();
+	Fire(PelletsAmount);
 }
 
-bool ASWeapon::ServerFire_Validate() 
+bool ASWeapon::ServerFire_Validate(int PelletsAmount)
 {
 	return true;
 }

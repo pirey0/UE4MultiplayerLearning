@@ -177,10 +177,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UCameraShake> FireCamShake;
 
-	virtual void Fire();
+	void Fire(int  PelletsAmount);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerFire();
+	void ServerFire(int PelletsAmount);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastFire(FMulticastShotData MulticastData);
@@ -213,9 +213,9 @@ protected:
 	USoundAttenuation* SoundAttenuation;
 
 public:
-	void StartFire();
+	virtual void StartFire();
 
-	void StopFire();
+	virtual void StopFire();
 
 	void GetEquippedBy(AActor* NewOwner);
 
