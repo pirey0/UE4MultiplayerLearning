@@ -14,6 +14,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
 #include "Components/DecalComponent.h"
+#include "Engine/Engine.h"
 
 static int32 DebugWeaponDrawing = 0;
 
@@ -60,9 +61,23 @@ void ASWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	WeaponsData = *WeaponsDataTable->FindRow<FWeaponData>(WeaponsDataName, "Weapon", true);
+	FWeaponData* WeaponsDataPrt = WeaponsDataTable->FindRow<FWeaponData>(WeaponsDataName, "Weapon", true);
 
 	WeaponsSoundData = WeaponsSoundDataTable->FindRow<FWeaponSoundData>(WeaponsDataName, "Weapon", true);
+
+	//To prevent crashing the engine from DataTable mistakes delete the current actor nullptr
+	if (!WeaponsDataPrt || !WeaponsSoundData)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, "DataTable entry fatal error! Destroying weapon to prevent crash");
+			Destroy();
+		}
+		
+		return;
+	}
+
+	WeaponsData = *WeaponsDataPrt;
 
 	TimeBetweenShots = 60 / WeaponsData.RateOfFire;
 

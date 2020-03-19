@@ -30,6 +30,9 @@ protected:
 	UFUNCTION()
 	virtual void OnPlayerCharacterDeath( ASCharacter* Character, AController* InstigatedBy, AActor* DamageCauser);
 
+	UPROPERTY(BlueprintReadWrite,EditDefaultsOnly, Category = "GameMode")
+	bool SkipCountdown;
+
 public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
