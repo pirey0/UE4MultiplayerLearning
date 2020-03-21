@@ -61,6 +61,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ReloadTime;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseSpreadInDegrees;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WeakshotMultiplyer;
+
 };
 
 USTRUCT(BlueprintType)
