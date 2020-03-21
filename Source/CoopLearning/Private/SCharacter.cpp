@@ -24,6 +24,7 @@
 #include "SUserSaveGame.h"
 #include "SGranade.h"
 #include "SPlayerController.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -567,10 +568,10 @@ void ASCharacter::ServerBeginGranade_Implementation()
 		GetActorEyesViewPoint(EyeLocation, EyeRotator);
 
 		//Spawn Granade a meter in front
-		ASGranade* Granade = GetWorld()->SpawnActor<ASGranade>(GranadeType, GetActorLocation() + EyeRotator.Vector() * 100, FRotator::ZeroRotator, SpawnParams);
+		ASGranade* Granade = GetWorld()->SpawnActor<ASGranade>(GranadeType, GetActorLocation() + GetActorForwardVector() * 100, FRotator::ZeroRotator, SpawnParams);
 		Granade->SetOwner(this);
 
-		FVector Impulse = EyeRotator.Vector() * GranadeThrowForce;
+		FVector Impulse = (EyeRotator.Vector()).GetUnsafeNormal() *GranadeThrowForce;
 
 		Granade->GetMeshComp()->AddImpulse(Impulse, NAME_None, true);	
 	}
