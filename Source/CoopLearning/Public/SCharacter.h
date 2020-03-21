@@ -211,6 +211,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	float GetSneakSpeedMultiplyer();
 
+	UFUNCTION(Exec)
+	void Suicide();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

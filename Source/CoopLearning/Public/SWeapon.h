@@ -223,5 +223,7 @@ public:
 
 	void Reload();
 
+	bool CanReload();
+
 	float GetReloadTime();
 };

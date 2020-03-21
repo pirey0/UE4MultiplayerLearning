@@ -102,6 +102,11 @@ float ASCharacter::GetSneakSpeedMultiplyer()
 	return 1;
 }
 
+void ASCharacter::Suicide()
+{
+	HealthComp->ForceHealthTo(0);
+}
+
 void ASCharacter::MoveCameraYaw(float Value)
 {
 	USGameInstance* GameInstance = Cast<USGameInstance>(GetGameInstance());
@@ -260,7 +265,7 @@ void ASCharacter::MulticastNotifyDamageDealt_Implementation(float Amount)
 
 void ASCharacter::BeginReload()
 {
-	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline))
+	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline) && CurrentWeapon->CanReload())
 	{
 		CurrentWeapon->Reload();
 		StopFire();

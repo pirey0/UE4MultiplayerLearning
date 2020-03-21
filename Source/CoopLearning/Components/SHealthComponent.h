@@ -31,7 +31,6 @@ protected:
 	void HandleTakeAnyDamage( AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 
-
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
@@ -39,5 +38,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "HealthComponent")
 	bool IsAlive();
+
+	void ForceHealthTo(float amount);
 
 };

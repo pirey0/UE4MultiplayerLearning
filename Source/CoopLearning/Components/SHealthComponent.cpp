@@ -57,6 +57,11 @@ bool USHealthComponent::IsAlive()
 	return Health > 0;
 }
 
+void USHealthComponent::ForceHealthTo(float amount)
+{
+	HandleTakeAnyDamage(nullptr, Health, nullptr, nullptr, nullptr);
+}
+
 void USHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

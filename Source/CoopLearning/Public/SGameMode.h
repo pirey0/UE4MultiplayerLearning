@@ -33,6 +33,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite,EditDefaultsOnly, Category = "GameMode")
 	bool SkipCountdown;
 
+	UFUNCTION(Exec)
+	void EnableUnlimitedMags();
+
 public:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
