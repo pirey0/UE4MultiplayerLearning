@@ -25,6 +25,7 @@
 #include "SGranade.h"
 #include "SPlayerController.h"
 #include "Components/StaticMeshComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -499,6 +500,11 @@ void ASCharacter::MulticastOnDeathEffects_Implementation()
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GetMesh()->SetSimulatePhysics(true);
+
+	if (DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, GetActorLocation(), 1, 1, 0, SoundAttenuation);
+	}
 }
 
 ASWeapon* ASCharacter::GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors)
