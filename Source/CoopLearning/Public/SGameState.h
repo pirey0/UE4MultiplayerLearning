@@ -18,4 +18,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GameState")
 	FString GetAllPlayersInfo();
 
+	UPROPERTY(BlueprintReadOnly, Category = "GameState")
+	bool UnlimitedMags;
+
 };

@@ -24,6 +24,16 @@ void ASGameMode::ResetAllKDA()
 
 }
 
+void ASGameMode::EnableUnlimitedMags()
+{
+	ASGameState* GS = Cast<ASGameState>(GameState);
+
+	if (GS) 
+	{
+		GS->UnlimitedMags = true;
+	}
+}
+
 void ASGameMode::PostLogin(APlayerController * NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
@@ -165,7 +175,12 @@ void ASGameMode::OnPlayerCharacterDeath(ASCharacter * Character, AController * I
 	}
 
 	ASPlayerState* DierState = Cast<ASPlayerState>(Character->GetPlayerState());
-	ASPlayerState* InstigatorState = Cast<ASPlayerState>(InstigatedBy->PlayerState);
+	ASPlayerState* InstigatorState = nullptr;
+	
+	if (InstigatedBy)
+	{
+		InstigatorState = Cast<ASPlayerState>(InstigatedBy->PlayerState);
+	}
 
 	if (DierState) 
 	{

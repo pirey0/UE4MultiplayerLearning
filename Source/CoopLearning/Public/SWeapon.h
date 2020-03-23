@@ -61,6 +61,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ReloadTime;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseSpreadInDegrees;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WeakshotMultiplyer;
+
 };
 
 USTRUCT(BlueprintType)
@@ -222,6 +228,8 @@ public:
 	void Unequip();
 
 	void Reload();
+
+	bool CanReload();
 
 	float GetReloadTime();
 };

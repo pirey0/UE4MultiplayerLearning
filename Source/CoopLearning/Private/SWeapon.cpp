@@ -15,6 +15,7 @@
 #include "Sound/SoundCue.h"
 #include "Components/DecalComponent.h"
 #include "Engine/Engine.h"
+#include "SGameState.h"
 
 static int32 DebugWeaponDrawing = 0;
 
@@ -193,7 +194,7 @@ void ASWeapon::Fire(int PelletsAmount)
 
 			float SpreadMultiplyer = FMath::GetMappedRangeValueClamped(FVector2D(0, SpeedEqualToMaxSpread), FVector2D(0, 1), GetOwner()->GetVelocity().Size());
 
-			float SpreadAmount = (WeaponsData.MaxSpreadInDegrees / 360.0f) * SpreadMultiplyer;
+			float SpreadAmount = WeaponsData.BaseSpreadInDegrees/360.0f + ((WeaponsData.MaxSpreadInDegrees - WeaponsData.BaseSpreadInDegrees) / 360.0f) * SpreadMultiplyer;
 
 			ShotDirection = FMath::VRandCone(ShotDirection, SpreadAmount);
 
@@ -218,6 +219,10 @@ void ASWeapon::Fire(int PelletsAmount)
 				if (SurfaceType == SURFACE_FLESHVULNERABLE)
 				{
 					ActualDamage *= WeaponsData.HeadshotMultiplyer;
+				}
+				else if (SurfaceType == SURFACE_FLESHRESISTANT) 
+				{
+					ActualDamage *= WeaponsData.WeakshotMultiplyer;
 				}
 
 				UGameplayStatics::ApplyPointDamage(HitActor, ActualDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, WeaponsData.DamageType);
@@ -257,23 +262,55 @@ void ASWeapon::Reload()
 		return;
 	}
 
-	if (CurrentMagazineCount <= 0) 
+	if (!CanReload()) 
 	{
-		//Out of magazines
 		return;
 	}
 
-	CurrentMagazineCount -= 1;
-	CurrentBulletCount = WeaponsData.BulletsPerMagazine;
+	int AmmoDiff = WeaponsData.BulletsPerMagazine - CurrentBulletCount;
+
+	if (CurrentMagazineCount < AmmoDiff) 
+	{
+		AmmoDiff = CurrentMagazineCount;
+	}
+
+	ASGameState* GS = Cast<ASGameState>(GetWorld()->GetGameState());
+
+	if (GS && GS->UnlimitedMags)
+	{
+
+	}
+	else 
+	{
+		CurrentMagazineCount -= AmmoDiff;
+	}
+
+	CurrentBulletCount += AmmoDiff;
 
 	MulticastReloadSound();	
+}
+
+bool ASWeapon::CanReload()
+{
+	//full mag
+	if (CurrentBulletCount >= WeaponsData.BulletsPerMagazine)
+	{
+		return false;
+	}
+
+	//out of ammo
+	if (CurrentMagazineCount <= 0)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 float ASWeapon::GetReloadTime()
 {
 	return WeaponsData.ReloadTime;
 }
-
 
 void ASWeapon::ServerReload_Implementation()
 {
@@ -359,6 +396,7 @@ void ASWeapon::PlayImpactEffects(FVector ImpactPoint, FVector ImpactNormal, EPhy
 	switch (SurfaceType)
 	{
 	case SURFACE_FLESHDEFAULT:
+	case SURFACE_FLESHRESISTANT:
 		SelectedEffect = FleshImpactEffect;
 		break;
 

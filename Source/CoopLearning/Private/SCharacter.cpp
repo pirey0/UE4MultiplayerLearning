@@ -24,6 +24,8 @@
 #include "SUserSaveGame.h"
 #include "SGranade.h"
 #include "SPlayerController.h"
+#include "Components/StaticMeshComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -100,6 +102,11 @@ float ASCharacter::GetSneakSpeedMultiplyer()
 	}
 
 	return 1;
+}
+
+void ASCharacter::Suicide()
+{
+	HealthComp->ForceHealthTo(0);
 }
 
 void ASCharacter::MoveCameraYaw(float Value)
@@ -260,7 +267,7 @@ void ASCharacter::MulticastNotifyDamageDealt_Implementation(float Amount)
 
 void ASCharacter::BeginReload()
 {
-	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline))
+	if (CurrentWeapon && (State == STATE_Normal || State == STATE_Zipline) && CurrentWeapon->CanReload())
 	{
 		CurrentWeapon->Reload();
 		StopFire();
@@ -493,6 +500,11 @@ void ASCharacter::MulticastOnDeathEffects_Implementation()
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GetMesh()->SetSimulatePhysics(true);
+
+	if (DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, GetActorLocation(), 1, 1, 0, SoundAttenuation);
+	}
 }
 
 ASWeapon* ASCharacter::GetClosestWeapon(FVector sourceLocation, TArray<AActor*> actors)
@@ -562,10 +574,10 @@ void ASCharacter::ServerBeginGranade_Implementation()
 		GetActorEyesViewPoint(EyeLocation, EyeRotator);
 
 		//Spawn Granade a meter in front
-		ASGranade* Granade = GetWorld()->SpawnActor<ASGranade>(GranadeType, GetActorLocation() + EyeRotator.Vector() * 100, FRotator::ZeroRotator, SpawnParams);
+		ASGranade* Granade = GetWorld()->SpawnActor<ASGranade>(GranadeType, GetActorLocation() + GetActorForwardVector() * 100, FRotator::ZeroRotator, SpawnParams);
 		Granade->SetOwner(this);
 
-		FVector Impulse = EyeRotator.Vector() * GranadeThrowForce;
+		FVector Impulse = (EyeRotator.Vector()).GetUnsafeNormal() *GranadeThrowForce;
 
 		Granade->GetMeshComp()->AddImpulse(Impulse, NAME_None, true);	
 	}

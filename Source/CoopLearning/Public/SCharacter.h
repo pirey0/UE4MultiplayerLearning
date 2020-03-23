@@ -13,6 +13,8 @@ class USHealthComponent;
 class USphereComponent;
 class ASZipline;
 class ASGranade;
+class USoundCue;
+class USoundAttenuation;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDeathSignature, class ASCharacter*, Character, class AController*, InstigatedBy, AActor*, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnClosestWeaponChangeSignature, class ASCharacter*, Character, class ASWeapon*, OldClosestWeapon, class ASWeapon*, NewClosestWeapon);
@@ -170,10 +172,10 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerBeginMelee();
 
-	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
 	float DefaultMeleeDistance;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
 	float DefaultMeleeDamage;
 
 	float MeleeDistance;
@@ -210,6 +212,15 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	float GetSneakSpeedMultiplyer();
+
+	UFUNCTION(Exec)
+	void Suicide();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	USoundCue* DeathSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	USoundAttenuation* SoundAttenuation;
 
 public:	
 	// Called every frame
